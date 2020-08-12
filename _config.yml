@@ -24,6 +24,7 @@ nav:
   cross_repository:
     exclude:
       - jekyll-theme
+      - pdsinterop.github.io
     show_archived: true
     show_homepage: false
   exclude:
