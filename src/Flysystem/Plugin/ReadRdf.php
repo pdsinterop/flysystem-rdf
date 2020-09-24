@@ -61,7 +61,7 @@ class ReadRdf extends AbstractPlugin
 
         if (is_string($contents)) {
             try {
-                $converter->parse($contents, Format::UNKNOWN, Rdf::EMPTY_NODE);
+                $converter->parse($contents, Format::UNKNOWN, Rdf::CURRENT_DOC);
             } catch (\EasyRdf_Exception $exception) {
                 $this->throwException(self::ERROR_COULD_NOT_CONVERT, [
                     'file' => $path,

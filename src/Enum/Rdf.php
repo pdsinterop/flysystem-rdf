@@ -5,4 +5,5 @@ namespace Pdsinterop\Rdf\Enum;
 class Rdf
 {
     public const EMPTY_NODE = '_:';
+    public const CURRENT_DOC = '';
 }
