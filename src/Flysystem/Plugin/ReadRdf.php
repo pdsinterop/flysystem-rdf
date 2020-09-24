@@ -45,13 +45,14 @@ class ReadRdf extends AbstractPlugin
      *
      * @param string $path path to file
      * @param string $format RDF format to convert file to
+     * @param string $url base url for parsing
      *
      * @return array|false metadata
      *
      * @throws FileNotFoundException
      * @throws \Pdsinterop\Rdf\Flysystem\Exception
      */
-    public function handle(string $path, string $format) : string
+    public function handle(string $path, string $format, string $url) : string
     {
         $converter = $this->converter;
 
@@ -61,7 +62,7 @@ class ReadRdf extends AbstractPlugin
 
         if (is_string($contents)) {
             try {
-                $converter->parse($contents, Format::UNKNOWN, Rdf::CURRENT_DOC);
+                $converter->parse($contents, Format::UNKNOWN, $url);
             } catch (\EasyRdf_Exception $exception) {
                 $this->throwException(self::ERROR_COULD_NOT_CONVERT, [
                     'file' => $path,
