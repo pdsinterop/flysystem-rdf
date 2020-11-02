@@ -20,7 +20,7 @@ class Format
     {
         $keys = (new \ReflectionClass(__CLASS__))->getConstants();
 
-        return array_filter($keys, function ($value) {
+        return array_filter($keys, static function ($value) {
             return $value !== self::UNKNOWN;
         });
     }

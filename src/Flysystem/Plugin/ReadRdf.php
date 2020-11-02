@@ -2,18 +2,19 @@
 
 namespace Pdsinterop\Rdf\Flysystem\Plugin;
 
+use EasyRdf_Exception;
+use EasyRdf_Graph;
 use League\Flysystem\FileNotFoundException;
 use League\Flysystem\Plugin\AbstractPlugin;
-use Pdsinterop\Flysystem\Exception;
 use Pdsinterop\Rdf\Enum\Format;
-use Pdsinterop\Rdf\Enum\Rdf;
+use Pdsinterop\Rdf\Flysystem\Exception;
 
 class ReadRdf extends AbstractPlugin
 {
     ////////////////////////////// CLASS PROPERTIES \\\\\\\\\\\\\\\\\\\\\\\\\\\\
-    const ERROR_COULD_NOT_CONVERT = 'Could not convert file "%s" to format "%s": %s';
+    private const ERROR_COULD_NOT_CONVERT = 'Could not convert file "%s" to format "%s": %s';
 
-    /** @var \EasyRdf_Graph */
+    /** @var EasyRdf_Graph */
     private $converter;
 
     //////////////////////////// GETTERS AND SETTERS \\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -33,9 +34,9 @@ class ReadRdf extends AbstractPlugin
     /**
      * GetAsRdf constructor.
      *
-     * @param \EasyRdf_Graph $rdfConverter
+     * @param EasyRdf_Graph $rdfConverter
      */
-    final public function __construct(\EasyRdf_Graph $rdfConverter)
+    final public function __construct(EasyRdf_Graph $rdfConverter)
     {
         $this->converter = $rdfConverter;
     }
@@ -50,7 +51,7 @@ class ReadRdf extends AbstractPlugin
      * @return array|false metadata
      *
      * @throws FileNotFoundException
-     * @throws \Pdsinterop\Rdf\Flysystem\Exception
+     * @throws Exception
      */
     public function handle(string $path, string $format, string $url) : string
     {
@@ -63,7 +64,7 @@ class ReadRdf extends AbstractPlugin
         if (is_string($contents)) {
             try {
                 $converter->parse($contents, Format::UNKNOWN, $url);
-            } catch (\EasyRdf_Exception $exception) {
+            } catch (EasyRdf_Exception $exception) {
                 $this->throwException(self::ERROR_COULD_NOT_CONVERT, [
                     'file' => $path,
                     'format' => $format,
@@ -88,7 +89,7 @@ class ReadRdf extends AbstractPlugin
      * @param array $context
      * @param \Exception|null $previous
      *
-     * @throws \Pdsinterop\Rdf\Flysystem\Exception
+     * @throws Exception
      */
     private function throwException(string $error, array $context, \Exception $previous = null) : void
     {
