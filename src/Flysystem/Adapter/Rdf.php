@@ -147,9 +147,20 @@ class Rdf implements AdapterInterface
     {
         $format = $this->resetFormat();
 
-        return $format !== ''
-            ? $this->formats->getMimeForFormat($format)
-            : call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+        $extension = $this->getExtension($path);
+        $possibleFormat = $this->formats->getFormatForExtension($extension);
+
+        $originalMimeType = $this->adapter->getMimetype($path);
+
+        if ($format !== '') {
+            $mime = $this->formats->getMimeForFormat($format);
+        } elseif ($possibleFormat !== '' && $originalMimeType === 'text/plain') {
+            $mime = $possibleFormat;
+        } else {
+            $mime = $originalMimeType;
+        }
+
+        return $mime;
     }
 
     final public function getTimestamp($path)
