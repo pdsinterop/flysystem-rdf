@@ -62,7 +62,11 @@ class Formats
 
     final public function getAllMimeTypes() : array
     {
-        return $this->getAll('mimeTypes');
+        $all = $this->getAll('mimeTypes');
+
+        return array_map(static function ($mimeTypes) {
+            return array_keys($mimeTypes);
+        }, $all);
     }
 
     private function getData() : array
