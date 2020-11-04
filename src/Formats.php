@@ -14,7 +14,7 @@ class Formats
             'mimeTypes' => [
                 'application/ld+json' => 1.0,
             ],
-            'extensions' => ['jsonld'],
+            'extensions' => ['jsonld', 'json'],
         ],
         Format::N_TRIPLES => [
             'uri' => 'http://www.w3.org/TR/n-triples/',

@@ -36,6 +36,9 @@ class Rdf implements AdapterInterface
 
         $this->format = $format;
     }
+    final public function getFormat() {
+		return $this->format;
+	}
 
     final public function __construct(AdapterInterface $adapter, EasyRdf_Graph $graph, Formats $formats, string $url)
     {
@@ -99,18 +102,12 @@ class Rdf implements AdapterInterface
 
     final public function has($path)
     {
-        $format = $this->resetFormat();
-
-        return $format !== ''
-            ? true
-            : call_user_func_array([$this->adapter, __FUNCTION__], func_get_args())
-        ;
+        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
 
     final public function read($path)
     {
         $format = $this->resetFormat();
-
         return $format !== ''
             ? [
                 'type' => 'file',
@@ -143,24 +140,21 @@ class Rdf implements AdapterInterface
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
 
-    final public function getMimetype($path)
+    final public function getMimeType($path)
     {
         $format = $this->resetFormat();
-
         $extension = $this->getExtension($path);
         $possibleFormat = $this->formats->getFormatForExtension($extension);
 
-        $originalMimeType = $this->adapter->getMimetype($path);
+        $mimeType = $this->adapter->getMimetype($path);
 
         if ($format !== '') {
-            $mime = $this->formats->getMimeForFormat($format);
-        } elseif ($possibleFormat !== '' && $originalMimeType === 'text/plain') {
-            $mime = $possibleFormat;
-        } else {
-            $mime = $originalMimeType;
+            $mimeType['mimetype'] = $this->formats->getMimeForFormat($format);
+        } elseif ($possibleFormat !== '' && $mimeType['mimetype'] === 'text/plain') {
+            $mimeType['mimetype'] = $possibleFormat;
         }
 
-        return $mime;
+        return $mimeType;
     }
 
     final public function getTimestamp($path)
@@ -181,7 +175,11 @@ class Rdf implements AdapterInterface
         $originalContents = $this->getOriginalContents($path);
         $originalFormat = $this->formats->getFormatForExtension($originalExtension);
 
+		if ($originalFormat == $format) {
+			return $originalContents;
+		}
         try {
+
             $this->converter->parse($originalContents, $originalFormat, $this->url);
             $contents = $this->converter->serialise($format);
         } catch (EasyRdf_Exception $exception) {
