@@ -9,7 +9,7 @@
 
 _Flysystem plugin to transform RDF data between various serialization formats._
 
-When using RDF, you will seen notice there are several different popular 
+When using RDF, you will notice there are several different popular 
 serialization formats. Instead of having to store data in multiple formats, it
 is easier to store the data in one format and convert it to others as needed.
 
@@ -33,6 +33,8 @@ Currently supported formats are:
 - [Background](#background)
 - [Installation](#installation)
 - [Usage](#usage)
+    - [Adapter](#adapter)
+    - [Plugin](#plugin)
 - [Contribute](#contribute)
 - [License](#license)
 
@@ -59,20 +61,85 @@ extension needs to be enabled in order for this package to work.
 
 ## Usage
 
-To use this package, instantiate the plugin and add it to a Flysystem filesystem.
+This package offers features to read files from a Filesystem that have been
+stored in one RDF format as another format.
+
+These features are provided by a plugin and an adapter.
+
+The plugin is best suited for light-weight scenarios where all you want to do is
+convert a file to another format.
+
+The adapter is best suited for full-featured usage of Flysystem, as it also 
+handles calls to `has` and `getMimeType` correctly (which the plugin does not) 
+
+### Adapter
+
+To use the adapter, instantiate it, add it to a Flysystem filesystem and add the
+helper plugin.
+
+```php
+<?php
+
+// Create Formats objects
+$formats = new \Pdsinterop\Rdf\Formats();
+
+// Use an adapter of your choice
+$adapter = new League\Flysystem\Adapter\Local('/path/to/files/');
+
+// Create the RDF Adapter
+$rdfAdapter = new \Pdsinterop\Rdf\Flysystem\Adapter\Rdf(
+    $adapter,
+    new \EasyRdf_Graph(),
+    $formats,
+    'server'
+);
+
+// Create Flysystem as usual, adding the RDF Adapter
+$filesystem = new League\Flysystem\Filesystem($adapter);
+
+// Add the `AsMime` plugin to convert contents based on a provided MIME type, 
+$filesystem->addPlugin(new \Pdsinterop\Rdf\Flysystem\Plugin\AsMime($formats));
+
+// Read the contents of a file in the format it was stored in
+$content = $filesystem->read('/foaf.rdf');
+
+// Read the contents of a file in another format from what was stored in
+$convertedContents = $filesystem
+    ->asMime('text/turtle')
+    ->read('/foaf.rdf');
+
+// Get the MIME type of the format the requested mime-type would return
+// This is especially useful for RDF formats that can be requested with several
+// different MIME types.
+$convertedMimeType = $filesystem
+    ->asMime('text/turtle')
+    ->getMimetype('/foaf.rdf');
+
+// This also works for `has`
+$hasConvertedContents = $filesystem
+    ->asMime('text/turtle')
+    ->has('/foaf.rdf');
+
+```
+
+### Plugin
+
+To use the plugin, instantiate it and add it to a Flysystem filesystem.
 
 The function `readRdf` can then be called to get RDF files in a specific format:
 
 ```php
-<?php declare(strict_types=1);
+<?php
 
+// Create Flysystem as usual, adding an adapter of your choice
 $adapter = new League\Flysystem\Adapter\Local('/path/to/files/');
 $filesystem = new League\Flysystem\Filesystem($adapter);
-$graph = new \EasyRdf_Graph();
-$plugin = new \Pdsinterop\Rdf\Flysystem\Plugin\ReadRdf($graph);
 
+// create and add the RdF Plugin
+$plugin = new \Pdsinterop\Rdf\Flysystem\Plugin\ReadRdf(new \EasyRdf_Graph());
 $filesystem->addPlugin($plugin);
 
+// Read the contents of a RDF file in another format from what was stored in
 $content = $filesystem->readRdf('/foaf.rdf', \Pdsinterop\Rdf\Enum\Format::TURTLE);
 ```
 
