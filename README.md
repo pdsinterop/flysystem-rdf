@@ -95,7 +95,7 @@ $rdfAdapter = new \Pdsinterop\Rdf\Flysystem\Adapter\Rdf(
 );
 
 // Create Flysystem as usual, adding the RDF Adapter
-$filesystem = new League\Flysystem\Filesystem($adapter);
+$filesystem = new League\Flysystem\Filesystem($rdfAdapter);
 
 // Add the `AsMime` plugin to convert contents based on a provided MIME type, 
 $filesystem->addPlugin(new \Pdsinterop\Rdf\Flysystem\Plugin\AsMime($formats));
