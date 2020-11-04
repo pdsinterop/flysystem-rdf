@@ -11,6 +11,11 @@ class Format
     public const TURTLE = 'turtle';
     public const UNKNOWN = 'guess';
 
+    final public static function has($value) : bool
+    {
+        return in_array($value, self::keys(), true);
+    }
+
     /**
      * Return array of available keys and their values.
      *
