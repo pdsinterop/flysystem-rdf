@@ -30,7 +30,7 @@ class Rdf implements AdapterInterface
 
     final public function setFormat(string $format) : void
     {
-        if (Format::has($format) === false) {
+        if (($format != "") && (Format::has($format) === false)) {
             throw new Exception('Given format "' . $format . '" is not supported');
         }
 
