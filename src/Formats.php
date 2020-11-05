@@ -41,7 +41,7 @@ class Formats
             'mimeTypes' => [
                 'application/rdf+xml' => 0.8,
             ],
-            'extensions' => ['rdf', 'xrdf'],
+            'extensions' => ['rdf', 'xrdf', 'html'],
         ],
         Format::NOTATION_3 => [
             'uri' => 'http://www.w3.org/2000/10/swap/grammar/n3#',
