@@ -9,7 +9,7 @@ use League\Flysystem\Config;
 use Pdsinterop\Rdf\Enum\Format;
 use Pdsinterop\Rdf\Flysystem\Exception;
 use Pdsinterop\Rdf\Formats;
-
+use ML\JsonLD;
 /**
  * Filesystem adapter to convert RDF files to and from a default format
  */
@@ -176,17 +176,39 @@ class Rdf implements AdapterInterface
 		if ($originalFormat == $format) {
 			return $originalContents;
 		}
-        try {
-			$graph = new \EasyRdf_Graph();
-			$graph->parse($originalContents, "guess", $this->url); // FIXME: guessing here helps pass another test, but we really should provide a correct format.
-			$contents = $graph->serialise($format);
-        } catch (EasyRdf_Exception $exception) {
-            throw new Exception(self::ERROR_COULD_NOT_CONVERT, [
-                'file' => $path,
-                'format' => $format,
-                'error' => $exception->getMessage(),
-            ], $exception);
-        }
+		switch($originalFormat) {
+/*			case "jsonld":
+				// $compacted = \ML\JsonLD\JsonLD::compact($originalContents, $context);
+				$jsonDoc = \ML\JsonLD\JsonLD::expand($originalContents);
+				$contents = \ML\JsonLD\JsonLD::toString($jsonDoc);
+				// var_dump($contents);
+			break;
+*/
+			default:
+				try {
+					$graph = new \EasyRdf_Graph();
+					// FIXME: parsing json gives warnings, so we're suppressing those for now.
+					@$graph->parse($originalContents, "guess", $this->url); // FIXME: guessing here helps pass another test, but we really should provide a correct format.
+					switch ($format) {
+						case "jsonld":
+							// We need to get the expanded version of the json-ld, but easyRdf doesn't provide an option for that, so we call this directly.
+							$contents = $graph->serialise($format);
+							$jsonDoc = \ML\JsonLD\JsonLD::expand($contents);
+							$contents = \ML\JsonLD\JsonLD::toString($jsonDoc);
+						break;
+						default:
+							$contents = $graph->serialise($format);
+						break;
+					}
+				} catch (EasyRdf_Exception $exception) {
+					throw new Exception(self::ERROR_COULD_NOT_CONVERT, [
+						'file' => $path,
+						'format' => $format,
+						'error' => $exception->getMessage(),
+					], $exception);
+				}
+			break;
+		}
 
         return $contents;
     }
