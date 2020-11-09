@@ -176,16 +176,23 @@ class Rdf implements AdapterInterface
 		if ($originalFormat == $format) {
 			return $originalContents;
 		}
-		switch($originalFormat) {
-/*			case "jsonld":
-				// $compacted = \ML\JsonLD\JsonLD::compact($originalContents, $context);
-				$jsonDoc = \ML\JsonLD\JsonLD::expand($originalContents);
-				$contents = \ML\JsonLD\JsonLD::toString($jsonDoc);
-				// var_dump($contents);
-			break;
-*/
-			default:
-				try {
+
+		try {
+			switch($originalFormat) {
+				case "jsonld":
+					$graph = new \EasyRdf_Graph();
+					// FIXME: parsing json gives warnings, so we're suppressing those for now.
+					$graph->parse($originalContents, "jsonld", $this->url);
+					switch ($format) {
+						default:
+							$contents = $graph->serialise($format);
+							// FIXME: we should not remove the xsd namespace, but couldn't find a way yet to prevent the serialiser from adding them. xsd namespace;
+							$contents = preg_replace("/\^\^xsd:string /", "", $contents);
+							$contents = str_replace("@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n", "", $contents);
+						break;
+					}
+				break;
+				default:
 					$graph = new \EasyRdf_Graph();
 					// FIXME: parsing json gives warnings, so we're suppressing those for now.
 					@$graph->parse($originalContents, "guess", $this->url); // FIXME: guessing here helps pass another test, but we really should provide a correct format.
@@ -200,14 +207,14 @@ class Rdf implements AdapterInterface
 							$contents = $graph->serialise($format);
 						break;
 					}
-				} catch (EasyRdf_Exception $exception) {
-					throw new Exception(self::ERROR_COULD_NOT_CONVERT, [
-						'file' => $path,
-						'format' => $format,
-						'error' => $exception->getMessage(),
-					], $exception);
-				}
-			break;
+				break;
+			}
+		} catch (EasyRdf_Exception $exception) {
+			throw new Exception(self::ERROR_COULD_NOT_CONVERT, [
+				'file' => $path,
+				'format' => $format,
+				'error' => $exception->getMessage(),
+			], $exception);
 		}
 
         return $contents;
