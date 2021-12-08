@@ -144,6 +144,14 @@ $filesystem->addPlugin($plugin);
 $content = $filesystem->readRdf('/foaf.rdf', \Pdsinterop\Rdf\Enum\Format::TURTLE);
 ```
 
+## Develop
+
+- Do not forget to install the required dependencies using `composer`.
+
+- Most of the logic here involves Easyrdf and/or FlySystem. You'll want to familiarise yourself with their workings.
+
+- Test are available in the `tests/` directory. They are run by GitHub actions for any pull request. To run them,call `./bin/phpunit`
+
 ## Contribute
 
 Questions or feedback can be given by [opening an issue on GitHub](https://github.com/pdsinterop/flysystem-rdf/issues).
