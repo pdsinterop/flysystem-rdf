@@ -3,7 +3,7 @@
 namespace Pdsinterop\Rdf\Flysystem\Adapter;
 
 use EasyRdf_Exception;
-use EasyRdf_Graph;
+use EasyRdf_Graph as Graph;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
 use Pdsinterop\Rdf\Enum\Format;
@@ -23,8 +23,20 @@ class Rdf implements AdapterInterface
     private $format = '';
     /** @var FormatsInterface */
     private $formats;
+    /** @var Graph */
+    private $graph;
     /** @var string */
     private $url;
+
+    /**
+     * Retrieve a new / clean RDF Graph object
+     *
+     * @return Graph
+     */
+    private function getGraph(): Graph
+    {
+        return clone $this->graph;
+    }
 
     final public function setFormat(string $format) : void
     {
@@ -38,11 +50,11 @@ class Rdf implements AdapterInterface
 		return $this->format;
 	}
 
-	// FIXME: remove easyrdf graph from the constructor
-    final public function __construct(AdapterInterface $adapter, EasyRdf_Graph $graph, FormatsInterface $formats, string $url)
+    final public function __construct(AdapterInterface $adapter, Graph $graph, FormatsInterface $formats, string $url)
     {
         $this->adapter = $adapter;
         $this->formats = $formats;
+        $this->graph = $graph;
         $this->url = $url;
     }
 
@@ -180,7 +192,7 @@ class Rdf implements AdapterInterface
 		try {
 			switch($originalFormat) {
 				case "jsonld":
-					$graph = new \EasyRdf_Graph();
+                    $graph = $this->getGraph();
 					// FIXME: parsing json gives warnings, so we're suppressing those for now.
 					$graph->parse($originalContents, "jsonld", $this->url);
 					switch ($format) {
@@ -193,7 +205,7 @@ class Rdf implements AdapterInterface
 					}
 				break;
 				default:
-					$graph = new \EasyRdf_Graph();
+                    $graph = $this->getGraph();
 					// FIXME: parsing json gives warnings, so we're suppressing those for now.
 					@$graph->parse($originalContents, "guess", $this->url); // FIXME: guessing here helps pass another test, but we really should provide a correct format.
 					switch ($format) {
