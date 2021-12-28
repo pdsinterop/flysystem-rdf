@@ -8,7 +8,7 @@ use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
 use Pdsinterop\Rdf\Enum\Format;
 use Pdsinterop\Rdf\Flysystem\Exception;
-use Pdsinterop\Rdf\Formats;
+use Pdsinterop\Rdf\FormatsInterface;
 use ML\JsonLD;
 /**
  * Filesystem adapter to convert RDF files to and from a default format
@@ -21,7 +21,7 @@ class Rdf implements AdapterInterface
     private $adapter;
     /** @var string */
     private $format = '';
-    /** @var Formats */
+    /** @var FormatsInterface */
     private $formats;
     /** @var string */
     private $url;
@@ -39,7 +39,7 @@ class Rdf implements AdapterInterface
 	}
 
 	// FIXME: remove easyrdf graph from the constructor
-    final public function __construct(AdapterInterface $adapter, EasyRdf_Graph $graph, Formats $formats, string $url)
+    final public function __construct(AdapterInterface $adapter, EasyRdf_Graph $graph, FormatsInterface $formats, string $url)
     {
         $this->adapter = $adapter;
         $this->formats = $formats;

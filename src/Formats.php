@@ -4,7 +4,7 @@ namespace Pdsinterop\Rdf;
 
 use Pdsinterop\Rdf\Enum\Format;
 
-class Formats
+class Formats implements FormatsInterface
 {
     ////////////////////////////// CLASS PROPERTIES \\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
@@ -55,12 +55,12 @@ class Formats
 
     //////////////////////////// GETTERS AND SETTERS \\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-    final public function getAllExtensions() : array
+    final public function getAllExtensions(): array
     {
         return $this->getAll('extensions');
     }
 
-    final public function getAllMimeTypes() : array
+    final public function getAllMimeTypes(): array
     {
         $all = $this->getAll('mimeTypes');
 
@@ -69,19 +69,19 @@ class Formats
         }, $all);
     }
 
-    private function getData() : array
+    private function getData(): array
     {
         return $this->data;
     }
 
     //////////////////////////////// PUBLIC API \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-    final public function getExtensionsForFormat(string $format) : array
+    final public function getExtensionsForFormat(string $format): array
     {
         return $this->getAllExtensions()[$format] ?? [];
     }
 
-    final public function getFormatForExtension(string $extension) : string
+    final public function getFormatForExtension(string $extension): string
     {
         $extension = ltrim($extension, '.');
 
@@ -96,7 +96,7 @@ class Formats
         return reset($formatNames);
     }
 
-    final public function getFormatForMime(string $mime) : string
+    final public function getFormatForMime(string $mime): string
     {
         $all = $this->getAllMimeTypes();
 
@@ -109,27 +109,21 @@ class Formats
         return reset($formatNames);
     }
 
-    final public function getMimeForFormat(string $format)
+    final public function getMimeForFormat(string $format): string
     {
-
         $mimes = $this->getMimesForFormat($format);
 
         return reset($mimes);
     }
 
-    final public function getMimesForFormat(string $format) : array
+    final public function getMimesForFormat(string $format): array
     {
         return $this->getAllMimeTypes()[$format] ?? [];
     }
 
     ////////////////////////////// UTILITY METHODS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-    /**
-     * @param string $subject
-     *
-     * @return array
-     */
-    private function getAll(string $subject) : array
+    private function getAll(string $subject): array
     {
         $data = $this->getData();
 
