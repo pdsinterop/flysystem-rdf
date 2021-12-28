@@ -18,6 +18,13 @@ use ReflectionObject;
  */
 class ReadRdfTest extends TestCase
 {
+    ////////////////////////////////// FIXTURES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+    private const MOCK_CONTENTS = 'mock contents';
+    private const MOCK_FORMAT = 'mock format';
+    private const MOCK_PATH = 'mock path';
+    private const MOCK_URL = 'mock url';
+
     ////////////////////////////// CUSTOM ASSERTS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
     private static function assertPropertyEquals($object, string $property, $expected) : void
@@ -165,29 +172,24 @@ class ReadRdfTest extends TestCase
      */
     public function testRdfPluginShouldSerialiseFileContentsWhenHandleCalledWithPathAndFormatAndUrl() : void
     {
-        $mockContents = 'mock contents';
-        $mockFormat = 'mock format';
-        $mockPath = 'mock path';
-        $mockUrl = 'mock url';
-
         $mockGraph = $this->getMockEasyRdfGraph();
-        $mockFilesystem = $this->getMockFilesystem($mockPath, $mockContents);
+        $mockFilesystem = $this->getMockFilesystem(self::MOCK_PATH, self::MOCK_CONTENTS);
 
         $mockGraph->method('parse')
-            ->with($mockContents, Format::UNKNOWN, $mockUrl)
+            ->with(self::MOCK_CONTENTS, Format::UNKNOWN, self::MOCK_URL)
         ;
 
         $mockGraph->method('serialise')
-            ->with($mockFormat)
-            ->willReturn($mockContents)
+            ->with(self::MOCK_FORMAT)
+            ->willReturn(self::MOCK_CONTENTS)
         ;
 
         $plugin = new ReadRdf($mockGraph);
         $plugin->setFilesystem($mockFilesystem);
 
         /** @noinspection PhpUnhandledExceptionInspection */
-        $actual = $plugin->handle($mockPath, $mockFormat, $mockUrl);
-        $expected = $mockContents;
+        $actual = $plugin->handle(self::MOCK_PATH, self::MOCK_FORMAT, self::MOCK_URL);
+        $expected = self::MOCK_CONTENTS;
 
         self::assertEquals($expected, $actual);
     }
