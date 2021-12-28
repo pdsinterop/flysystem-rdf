@@ -17,6 +17,8 @@ class FilesystemTest extends TestCase
      * @param $expected
      *
      * @dataProvider provideFormatResult
+     *
+     * @coversNothing
      */
     public function test_($format, $expected) : void
     {
