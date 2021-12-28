@@ -210,7 +210,7 @@ class Rdf implements AdapterInterface
 				break;
 			}
 		} catch (EasyRdf_Exception $exception) {
-			throw new Exception(self::ERROR_COULD_NOT_CONVERT, [
+            throw Exception::create(self::ERROR_COULD_NOT_CONVERT, [
 				'file' => $path,
 				'format' => $format,
 				'error' => $exception->getMessage(),
