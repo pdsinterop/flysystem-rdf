@@ -48,12 +48,12 @@ class ReadRdf extends AbstractPlugin
      * @param string $format RDF format to convert file to
      * @param string $url base url for parsing
      *
-     * @return array|false metadata
+     * @return string|false converted contents
      *
      * @throws FileNotFoundException
      * @throws Exception
      */
-    public function handle(string $path, string $format, string $url) : string
+    public function handle(string $path, string $format, string $url)
     {
         $converter = $this->converter;
 
