@@ -3,10 +3,13 @@
 namespace Pdsinterop\Rdf\Flysystem\Plugin;
 
 use ArgumentCountError;
+use EasyRdf_Exception;
 use EasyRdf_Graph;
 use Error;
+use League\Flysystem\FileNotFoundException;
 use League\Flysystem\FilesystemInterface;
 use Pdsinterop\Rdf\Enum\Format;
+use Pdsinterop\Rdf\Flysystem\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionObject;
@@ -50,6 +53,7 @@ class ReadRdfTest extends TestCase
         $this->expectException(ArgumentCountError::class);
 
         /** @noinspection PhpParamsInspection */
+        /** @noinspection PhpExpressionResultUnusedInspection */
         new ReadRdf();
     }
 
@@ -194,9 +198,87 @@ class ReadRdfTest extends TestCase
         self::assertEquals($expected, $actual);
     }
 
-    // @TODO: Test for when $filesystem->read($path) returns false
-    // @TODO: Test for when $converter->parse(...) throws EasyRdf_Exception
-    // @TODO: Test for when $converter->parse(...) output is non-scalar
+    /**
+     * @covers ::handle
+     *
+     * @uses \Pdsinterop\Rdf\Flysystem\Exception
+     */
+    public function testRdfPluginShouldComplainWhenConverterCanNotParseFileContent(): void
+    {
+        $mockGraph = $this->getMockEasyRdfGraph();
+        $mockFilesystem = $this->getMockFilesystem(self::MOCK_PATH, self::MOCK_CONTENTS);
+
+        $mockGraph->method('parse')
+            ->willThrowException(new EasyRdf_Exception())
+        ;
+
+        $plugin = new ReadRdf($mockGraph);
+        $plugin->setFilesystem($mockFilesystem);
+
+        $this->expectException(Exception::class);
+
+        $plugin->handle(self::MOCK_PATH, self::MOCK_FORMAT, self::MOCK_URL);
+    }
+
+    /**
+     * @covers ::handle
+     */
+    public function testRdfPluginShouldReturnStringWhenSerialiseResultIsNonScalar() : void
+    {
+        $mockGraph = $this->getMockEasyRdfGraph();
+        $mockFilesystem = $this->getMockFilesystem(self::MOCK_PATH, self::MOCK_CONTENTS);
+
+        $mockGraph->method('serialise')
+            ->willReturn(new \stdClass())
+        ;
+
+        $plugin = new ReadRdf($mockGraph);
+        $plugin->setFilesystem($mockFilesystem);
+
+        $actual = $plugin->handle(self::MOCK_PATH, self::MOCK_FORMAT, self::MOCK_URL);
+        $expected = "(object) array(\n)";
+
+        self::assertEquals($expected, $actual);
+    }
+
+    /**
+     * @covers ::handle
+     */
+    public function testRdfPluginShouldReturnFalseWhenRequestedPathCanNotBeRead() : void
+    {
+        $expected = false;
+
+        $mockGraph = $this->getMockEasyRdfGraph();
+        $mockFilesystem = $this->getMockFilesystem(self::MOCK_PATH, $expected);
+
+        $plugin = new ReadRdf($mockGraph);
+        $plugin->setFilesystem($mockFilesystem);
+
+        $actual = $plugin->handle(self::MOCK_PATH, self::MOCK_FORMAT, self::MOCK_URL);
+
+        self::assertEquals($expected, $actual);
+    }
+
+    /**
+     * @covers ::handle
+     */
+    public function testRdfPluginShouldComplainWhenRequestedPathDoesNotExist() : void
+    {
+        $mockGraph = $this->getMockEasyRdfGraph();
+
+        $mockFilesystem = $this->getMockBuilder(FilesystemInterface::class)
+            ->getMock();
+
+        $mockFilesystem->method('read')
+            ->willThrowException(new FileNotFoundException(self::MOCK_PATH));
+
+        $plugin = new ReadRdf($mockGraph);
+        $plugin->setFilesystem($mockFilesystem);
+
+        $this->expectException(FileNotFoundException::class);
+
+        $plugin->handle(self::MOCK_PATH, self::MOCK_FORMAT, self::MOCK_URL);
+    }
 
     ////////////////////////////// MOCKS AND STUBS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
@@ -212,11 +294,11 @@ class ReadRdfTest extends TestCase
 
     /**
      * @param string $path
-     * @param string $fileContents
+     * @param mixed $fileContents
      *
      * @return FilesystemInterface | MockObject
      */
-    private function getMockFilesystem(string $path = '', string $fileContents = '') : FilesystemInterface
+    private function getMockFilesystem(string $path = '', $fileContents = '') : FilesystemInterface
     {
         $mockFilesystem = $this->getMockBuilder(FilesystemInterface::class)
             ->getMock();
