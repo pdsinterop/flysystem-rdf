@@ -286,16 +286,21 @@ class Rdf implements AdapterInterface
 
         if ($metadata === []) {
             $parentMetadata = $this->adapter->getMimetype($path);
-            if ($parentMetadata !== false) {
+            if (isset($parentMetadata['mimetype'])) {
                 $metadata = $parentMetadata;
             }
         }
 
         $extension = $this->getExtension($path);
-        $possibleFormat = $this->formats->getFormatForExtension($extension);
-        $possibleMime = $this->formats->getMimeForFormat($possibleFormat);
 
-        if ($possibleMime !== '' && $metadata['mimetype'] === 'text/plain') {
+        $possibleMime = $this->formats->getMimeForExtension($extension);
+
+        if ($possibleMime !== ''
+            && (
+                ! isset($metadata['mimetype'])
+                || $metadata['mimetype'] === 'text/plain'
+            )
+        ) {
             $mimetype = $possibleMime;
         }
 

@@ -22,10 +22,11 @@ class RdfTest extends TestCase
 {
     ////////////////////////////////// FIXTURES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-    private const MOCK_URL = 'mock url';
     private const MOCK_CONTENTS = 'mock contents';
     private const MOCK_CONTENTS_RDF = "@prefix rdfs: <> .\n</> rdfs:comment '' .";
+    private const MOCK_MIME = 'mock mime';
     private const MOCK_PATH = 'mock path';
+    private const MOCK_URL = 'mock url';
 
     /** @var AdapterInterface|MockObject */
     private $mockAdapter;
@@ -140,21 +141,16 @@ class RdfTest extends TestCase
         if ($method === 'read' || $method === 'readStream') {
             $adapterMethod = 'read';
             $expected = ['contents' => $expected];
+        } elseif ($method === 'getMimetype') {
+            $expected = ['mimetype' => self::MOCK_MIME];
         }
 
         $adapter = $this->createAdapter();
 
-
         if ($method === 'getMetadata' || $method === 'read' || $method === 'readStream') {
             $this->mockAdapter
                 ->method('read')
-                ->willReturn(['contents' => self::MOCK_CONTENTS]);
-        }
-
-        if ($method === 'read' || $method === 'readStream') {
-
-            $this->mockAdapter->method('getMimetype')
-                ->willReturn([])
+                ->willReturn(['contents' => self::MOCK_CONTENTS])
             ;
         }
 
@@ -251,6 +247,10 @@ class RdfTest extends TestCase
             ->willReturn('[]')
         ;
 
+        $this->mockFormats->method('getMimeForFormat')
+            ->willReturn(self::MOCK_MIME)
+        ;
+
         if ($method === 'getMimeType' || $method === 'getSize' || $method === 'has') {
             /*/ These inner adapter method should *never* be called when working with converted (meta)data /*/
             $this->mockAdapter->expects($this->never())
@@ -263,17 +263,13 @@ class RdfTest extends TestCase
         } elseif ($method === 'read' || $method === 'readStream') {
             $this->mockAdapter->expects($this->exactly($formatCount))
                 ->method($adapterMethod);
-
-            $this->mockFormats->method('getFormatForExtension')
-                ->willReturn('mock format')
-            ;
         } else {
             $this->fail('Do not know how to test for ' . $method);
         }
 
         $expected = [
             'contents' => '[]',
-            'mimetype' => '',
+            'mimetype' => self::MOCK_MIME,
             'path' => 'mock path',
             'size' => 2,
             'type' => 'file',
@@ -283,7 +279,7 @@ class RdfTest extends TestCase
             /*/ Mimetype does not require metadata or read to function.
                 Hence, it only returns one value.
             /*/
-            $expected = ['mimetype' => ''];
+            $expected = ['mimetype' => self::MOCK_MIME];
         }
 
         foreach ($formats as $format) {
@@ -310,6 +306,7 @@ class RdfTest extends TestCase
             'delete' => ['delete', [$mockPath]],
             'deleteDir' => ['deleteDir', [$mockPath]],
             'getMetadata' => ['getMetadata', [$mockPath]],
+            'getMimetype' => ['getMimetype', [$mockPath]],
             'getSize' => ['getSize', [$mockPath]],
             'getVisibility' => ['getVisibility', [$mockPath]],
             'getTimestamp' => ['getTimestamp', [$mockPath]],
