@@ -109,6 +109,13 @@ class Formats implements FormatsInterface
         return reset($formatNames);
     }
 
+    final public function getMimeForExtension(string $extension): string
+    {
+        $format = $this->getFormatForExtension($extension);
+
+        return $this->getMimeForFormat($format);
+    }
+
     final public function getMimeForFormat(string $format): string
     {
         $mimes = $this->getMimesForFormat($format);

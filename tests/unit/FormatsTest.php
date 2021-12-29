@@ -110,6 +110,22 @@ class FormatsTest extends TestCase
     }
 
     /**
+     * @covers ::getMimeForExtension
+     *
+     * @uses \Pdsinterop\Rdf\Formats
+     *
+     * @dataProvider provideMimeForExtension
+     */
+    public function testGetMimeForExtension($extension, $expected): void
+    {
+        $formats = new Formats();
+
+        $actual =  $formats->getMimeForExtension($extension);
+
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
      * @covers ::getMimeForFormat
      *
      * @uses \Pdsinterop\Rdf\Formats::getAllMimeTypes

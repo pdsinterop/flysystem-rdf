@@ -14,6 +14,8 @@ interface FormatsInterface
 
     public function getFormatForMime(string $mime): string;
 
+    public function getMimeForExtension(string $extension): string;
+
     public function getMimeForFormat(string $format): string;
 
     public function getMimesForFormat(string $format): array;
