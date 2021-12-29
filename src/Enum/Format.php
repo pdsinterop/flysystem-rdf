@@ -11,7 +11,7 @@ class Format
     public const TURTLE = 'turtle';
     public const UNKNOWN = 'guess';
 
-    final public static function has($value) : bool
+    final public static function has($value): bool
     {
         return in_array($value, self::keys(), true);
     }
@@ -21,7 +21,7 @@ class Format
      *
      * @return string[]
      */
-    final public static function keys() : array
+    final public static function keys(): array
     {
         $keys = (new \ReflectionClass(__CLASS__))->getConstants();
 

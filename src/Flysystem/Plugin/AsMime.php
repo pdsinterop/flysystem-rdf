@@ -33,7 +33,7 @@ class AsMime extends AbstractPlugin
         $this->formats = $formats;
     }
 
-    public function handle(string $mime) : FilesystemInterface
+    public function handle(string $mime): FilesystemInterface
     {
         $filesystem = $this->filesystem;
 

@@ -2,19 +2,22 @@
 
 namespace Pdsinterop\Rdf\Flysystem\Adapter;
 
-use EasyRdf_Exception;
+use EasyRdf_Exception as RdfException;
 use EasyRdf_Graph as Graph;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
+use ML\JsonLD\JsonLD;
 use Pdsinterop\Rdf\Enum\Format;
 use Pdsinterop\Rdf\Flysystem\Exception;
 use Pdsinterop\Rdf\FormatsInterface;
-use ML\JsonLD;
+
 /**
  * Filesystem adapter to convert RDF files to and from a default format
  */
 class Rdf implements AdapterInterface
 {
+    ////////////////////////////// CLASS PROPERTIES \\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
     public const ERROR_UNSUPPORTED_FORMAT = 'Given format "%s" is not supported';
     public const ERROR_COULD_NOT_CONVERT = 'Could not convert file "%s" to format "%s": %s';
 
@@ -29,6 +32,8 @@ class Rdf implements AdapterInterface
     /** @var string */
     private $url;
 
+    //////////////////////////// GETTERS AND SETTERS \\\\\\\\\\\\\\\\\\\\\\\\\\\
+
     /**
      * Retrieve a new / clean RDF Graph object
      *
@@ -39,7 +44,7 @@ class Rdf implements AdapterInterface
         return clone $this->graph;
     }
 
-    final public function setFormat(string $format) : void
+    final public function setFormat(string $format): void
     {
         if (($format !== "") && (Format::has($format) === false)) {
             throw Exception::create(self::ERROR_UNSUPPORTED_FORMAT, [$format]);
@@ -53,6 +58,8 @@ class Rdf implements AdapterInterface
 		return $this->format;
 	}
 
+    //////////////////////////////// PUBLIC API \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
     final public function __construct(AdapterInterface $adapter, Graph $graph, FormatsInterface $formats, string $url)
     {
         $this->adapter = $adapter;
@@ -60,8 +67,6 @@ class Rdf implements AdapterInterface
         $this->graph = $graph;
         $this->url = $url;
     }
-
-    // =========================================================================
 
     final public function write($path, $contents, Config $config)
     {
@@ -180,7 +185,7 @@ class Rdf implements AdapterInterface
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
 
-    // =========================================================================
+    ////////////////////////////// UTILITY METHODS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
     private function convertedContents($path, $format)
     {
@@ -188,7 +193,7 @@ class Rdf implements AdapterInterface
         $originalContents = $this->getOriginalContents($path);
         $originalFormat = $this->formats->getFormatForExtension($originalExtension);
 
-		if ($originalFormat == $format) {
+		if ($originalFormat === $format) {
 			return $originalContents;
 		}
 
@@ -209,14 +214,15 @@ class Rdf implements AdapterInterface
 				break;
 				default:
                     $graph = $this->getGraph();
+                    // FIXME: guessing here helps pass another test, but we really should provide a correct format.
 					// FIXME: parsing json gives warnings, so we're suppressing those for now.
-					@$graph->parse($originalContents, "guess", $this->url); // FIXME: guessing here helps pass another test, but we really should provide a correct format.
+					@$graph->parse($originalContents, "guess", $this->url);
 					switch ($format) {
 						case "jsonld":
 							// We need to get the expanded version of the json-ld, but easyRdf doesn't provide an option for that, so we call this directly.
 							$contents = $graph->serialise($format);
-							$jsonDoc = \ML\JsonLD\JsonLD::expand($contents);
-							$contents = \ML\JsonLD\JsonLD::toString($jsonDoc);
+							$jsonDoc = JsonLD::expand($contents);
+							$contents = JsonLD::toString($jsonDoc);
 						break;
 						default:
 							$contents = $graph->serialise($format);
@@ -224,7 +230,7 @@ class Rdf implements AdapterInterface
 					}
 				break;
 			}
-		} catch (EasyRdf_Exception $exception) {
+		} catch (RdfException $exception) {
             throw Exception::create(self::ERROR_COULD_NOT_CONVERT, [
 				'file' => $path,
 				'format' => $format,
@@ -235,7 +241,7 @@ class Rdf implements AdapterInterface
         return $contents;
     }
 
-    private function getExtension(string $path) : string
+    private function getExtension(string $path): string
     {
         return strtolower(pathinfo($path, PATHINFO_EXTENSION));
     }

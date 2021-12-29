@@ -30,7 +30,7 @@ class ReadRdfTest extends TestCase
 
     ////////////////////////////// CUSTOM ASSERTS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-    private static function assertPropertyEquals($object, string $property, $expected) : void
+    private static function assertPropertyEquals($object, string $property, $expected): void
     {
         $reflector = new ReflectionObject($object);
 
@@ -48,7 +48,7 @@ class ReadRdfTest extends TestCase
     /**
      * @covers ::__construct
      */
-    public function testRdfPluginShouldComplainWhenInstantiatedWithoutGraph() : void
+    public function testRdfPluginShouldComplainWhenInstantiatedWithoutGraph(): void
     {
         $this->expectException(ArgumentCountError::class);
 
@@ -60,7 +60,7 @@ class ReadRdfTest extends TestCase
     /**
      * @covers ::__construct
      */
-    public function testRdfPluginShouldReceiveEasyRdfGraphWhenInstantiated() : void
+    public function testRdfPluginShouldReceiveEasyRdfGraphWhenInstantiated(): void
     {
         $mockGraph = $this->getMockEasyRdfGraph();
 
@@ -72,7 +72,7 @@ class ReadRdfTest extends TestCase
     /**
      * @covers ::setFilesystem
      */
-    public function testRdfPluginShouldComplainWhenSetFilesystemCalledWithoutFilesystem() : void
+    public function testRdfPluginShouldComplainWhenSetFilesystemCalledWithoutFilesystem(): void
     {
         $mockGraph = $this->getMockEasyRdfGraph();
 
@@ -87,7 +87,7 @@ class ReadRdfTest extends TestCase
     /**
      * @covers ::setFilesystem
      */
-    public function testRdfPluginShouldContainFilesystemWhenFilesystemGiven() : void
+    public function testRdfPluginShouldContainFilesystemWhenFilesystemGiven(): void
     {
         $mockGraph = $this->getMockEasyRdfGraph();
 
@@ -103,7 +103,7 @@ class ReadRdfTest extends TestCase
     /**
      * @covers ::getMethod
      */
-    public function testRdfPluginShouldReturnExpectedMethodNameWhenAskedForMethod() : void
+    public function testRdfPluginShouldReturnExpectedMethodNameWhenAskedForMethod(): void
     {
         $mockGraph = $this->getMockEasyRdfGraph();
 
@@ -115,7 +115,7 @@ class ReadRdfTest extends TestCase
         self::assertEquals($expected, $actual);
     }
 
-    public function testRdfPluginShouldComplainWhenHandleCalledWithoutPath() : void
+    public function testRdfPluginShouldComplainWhenHandleCalledWithoutPath(): void
     {
         $mockGraph = $this->getMockEasyRdfGraph();
 
@@ -128,7 +128,7 @@ class ReadRdfTest extends TestCase
         $plugin->handle();
     }
 
-    public function testRdfPluginShouldComplainWhenHandleCalledWithoutFormat() : void
+    public function testRdfPluginShouldComplainWhenHandleCalledWithoutFormat(): void
     {
         $mockGraph = $this->getMockEasyRdfGraph();
 
@@ -141,7 +141,7 @@ class ReadRdfTest extends TestCase
         $plugin->handle('');
     }
 
-    public function testRdfPluginShouldComplainWhenHandleCalledWithoutUrl() : void
+    public function testRdfPluginShouldComplainWhenHandleCalledWithoutUrl(): void
     {
         $mockGraph = $this->getMockEasyRdfGraph();
 
@@ -157,7 +157,7 @@ class ReadRdfTest extends TestCase
     /**
      * @covers ::handle
      */
-    public function testRdfPluginShouldComplainWhenHandleCalledWithoutFilesystem() : void
+    public function testRdfPluginShouldComplainWhenHandleCalledWithoutFilesystem(): void
     {
         $mockGraph = $this->getMockEasyRdfGraph();
 
@@ -174,7 +174,7 @@ class ReadRdfTest extends TestCase
      * @covers ::handle
      * @covers ::setFilesystem
      */
-    public function testRdfPluginShouldSerialiseFileContentsWhenHandleCalledWithPathAndFormatAndUrl() : void
+    public function testRdfPluginShouldSerialiseFileContentsWhenHandleCalledWithPathAndFormatAndUrl(): void
     {
         $mockGraph = $this->getMockEasyRdfGraph();
         $mockFilesystem = $this->getMockFilesystem(self::MOCK_PATH, self::MOCK_CONTENTS);
@@ -223,7 +223,7 @@ class ReadRdfTest extends TestCase
     /**
      * @covers ::handle
      */
-    public function testRdfPluginShouldReturnStringWhenSerialiseResultIsNonScalar() : void
+    public function testRdfPluginShouldReturnStringWhenSerialiseResultIsNonScalar(): void
     {
         $mockGraph = $this->getMockEasyRdfGraph();
         $mockFilesystem = $this->getMockFilesystem(self::MOCK_PATH, self::MOCK_CONTENTS);
@@ -244,7 +244,7 @@ class ReadRdfTest extends TestCase
     /**
      * @covers ::handle
      */
-    public function testRdfPluginShouldReturnFalseWhenRequestedPathCanNotBeRead() : void
+    public function testRdfPluginShouldReturnFalseWhenRequestedPathCanNotBeRead(): void
     {
         $expected = false;
 
@@ -262,7 +262,7 @@ class ReadRdfTest extends TestCase
     /**
      * @covers ::handle
      */
-    public function testRdfPluginShouldComplainWhenRequestedPathDoesNotExist() : void
+    public function testRdfPluginShouldComplainWhenRequestedPathDoesNotExist(): void
     {
         $mockGraph = $this->getMockEasyRdfGraph();
 
@@ -285,7 +285,7 @@ class ReadRdfTest extends TestCase
     /**
      * @return EasyRdf_Graph | MockObject
      */
-    private function getMockEasyRdfGraph() : EasyRdf_Graph
+    private function getMockEasyRdfGraph(): EasyRdf_Graph
     {
         return $this->getMockBuilder(EasyRdf_Graph::class)
             ->disableOriginalConstructor()
@@ -298,7 +298,7 @@ class ReadRdfTest extends TestCase
      *
      * @return FilesystemInterface | MockObject
      */
-    private function getMockFilesystem(string $path = '', $fileContents = '') : FilesystemInterface
+    private function getMockFilesystem(string $path = '', $fileContents = ''): FilesystemInterface
     {
         $mockFilesystem = $this->getMockBuilder(FilesystemInterface::class)
             ->getMock();
