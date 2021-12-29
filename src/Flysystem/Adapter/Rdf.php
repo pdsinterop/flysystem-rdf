@@ -15,7 +15,8 @@ use ML\JsonLD;
  */
 class Rdf implements AdapterInterface
 {
-    private const ERROR_COULD_NOT_CONVERT = 'Could not convert file "%s" to format "%s": %s';
+    public const ERROR_UNSUPPORTED_FORMAT = 'Given format "%s" is not supported';
+    public const ERROR_COULD_NOT_CONVERT = 'Could not convert file "%s" to format "%s": %s';
 
     /** @var AdapterInterface */
     private $adapter;
@@ -40,13 +41,15 @@ class Rdf implements AdapterInterface
 
     final public function setFormat(string $format) : void
     {
-        if (($format != "") && (Format::has($format) === false)) {
-            throw new Exception('Given format "' . $format . '" is not supported');
+        if (($format !== "") && (Format::has($format) === false)) {
+            throw Exception::create(self::ERROR_UNSUPPORTED_FORMAT, [$format]);
         }
 
         $this->format = $format;
     }
-    final public function getFormat() {
+
+    final public function getFormat(): string
+    {
 		return $this->format;
 	}
 

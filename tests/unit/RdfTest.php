@@ -7,6 +7,7 @@ use EasyRdf_Graph as Graph;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
 use Pdsinterop\Rdf\Enum\Format;
+use Pdsinterop\Rdf\Flysystem\Exception;
 use Pdsinterop\Rdf\Formats;
 use Pdsinterop\Rdf\FormatsInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -143,6 +144,44 @@ class RdfTest extends TestCase
     //////////////////////////// TESTS WITH FORMATTING \\\\\\\\\\\\\\\\\\\\\\\\\
 
     /**
+     * @covers ::setFormat
+     *
+     * @uses \Pdsinterop\Rdf\Enum\Format
+     * @uses \Pdsinterop\Rdf\Flysystem\Exception
+     *
+     * @dataProvider provideUnsupportedFormats
+     */
+    public function testRdfAdapterShouldComplainWhenAskedToSetUnsupportedFormat($format): void
+    {
+        $adapter = $this->createAdapter();
+        $message = vsprintf($adapter::ERROR_UNSUPPORTED_FORMAT, [$format]);
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage($message);
+
+        $adapter->setFormat($format);
+    }
+
+    /**
+     * @covers ::getFormat
+     * @covers ::setFormat
+     *
+     * @uses \Pdsinterop\Rdf\Enum\Format
+     *
+     * @dataProvider provideSupportedFormats
+     */
+    public function testRdfAdapterShouldSetFormatWhenAskedToSetSupportedFormat($expected): void
+    {
+        $adapter = $this->createAdapter();
+
+        $adapter->setFormat($expected);
+
+        $actual = $adapter->getFormat();
+
+        $this->assertSame($expected, $actual);
+    }
+
+    /**
      * @covers ::copy
      * @covers ::createDir
      * @covers ::delete
@@ -233,6 +272,26 @@ class RdfTest extends TestCase
             'updateStream' => ['updateStream', [$mockPath, $mockResource, $mockConfig]],
             'write' => ['write', [$mockPath, $mockContents, $mockConfig]],
             'writeStream' => ['writeStream', [$mockPath, $mockResource, $mockConfig]],
+        ];
+    }
+
+    public function provideSupportedFormats(): array
+    {
+        return [
+            'string: empty' => [''],
+            Format::JSON_LD => [Format::JSON_LD],
+            Format::N_TRIPLES => [Format::N_TRIPLES],
+            Format::NOTATION_3 => [Format::NOTATION_3],
+            Format::RDF_XML => [Format::RDF_XML],
+            Format::TURTLE => [Format::TURTLE],
+        ];
+    }
+
+    public function provideUnsupportedFormats(): array
+    {
+        return [
+            'mock format' => ['mock format'],
+            Format::UNKNOWN => [Format::UNKNOWN],
         ];
     }
 
