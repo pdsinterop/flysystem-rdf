@@ -24,20 +24,23 @@ class RdfTest extends TestCase
 
     private const MOCK_URL = 'mock url';
     private const MOCK_CONTENTS = 'mock contents';
+    private const MOCK_CONTENTS_RDF = "@prefix rdfs: <> .\n</> rdfs:comment '' .";
     private const MOCK_PATH = 'mock path';
 
     /** @var AdapterInterface|MockObject */
     private $mockAdapter;
     /** @var Formats|MockObject */
     private $mockFormats;
+    /** @var Graph|MockObject */
+    private $mockGraph;
 
     private function createAdapter(): Rdf
     {
-        $this->createMockAdapter();
-        $mockGraph = $this->getMockBuilder(Graph::class)->getMock();
+        $this->mockAdapter = $this->mockAdapter ?? $this->getMockBuilder(AdapterInterface::class)->getMock();
+        $this->mockGraph = $this->getMockBuilder(Graph::class)->getMock();
         $this->mockFormats = $this->getMockBuilder(FormatsInterface::class)->getMock();
 
-        return new Rdf($this->mockAdapter, $mockGraph, $this->mockFormats, self::MOCK_URL);
+        return new Rdf($this->mockAdapter, $this->mockGraph, $this->mockFormats, self::MOCK_URL);
     }
 
     ////////////////////////// TESTS WITHOUT FORMATTING \\\\\\\\\\\\\\\\\\\\\\\\
@@ -109,8 +112,10 @@ class RdfTest extends TestCase
      * @covers ::copy
      * @covers ::createDir
      * @covers ::delete
+     * @covers ::getSize
      * @covers ::deleteDir
      * @covers ::getMetadata
+     * @covers ::getTimestamp
      * @covers ::getVisibility
      * @covers ::listContents
      * @covers ::read
@@ -122,23 +127,45 @@ class RdfTest extends TestCase
      * @covers ::write
      * @covers ::writeStream
      *
+     * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::getMimeType
+     *
      * @dataProvider provideProxyMethods
      */
-    public function testRdfAdapterShouldCallInnerAdapterWhenProxyMethodsAreCalled($method, $parameters): void
+    public function testRdfAdapterShouldReturnInnerAdapterResultWhenProxyMethodsAreCalled($method, $parameters): void
     {
+        $expected = self::MOCK_CONTENTS;
+
         $adapterMethod = $method;
 
-        if ($method === 'readStream') {
+        if ($method === 'read' || $method === 'readStream') {
             $adapterMethod = 'read';
+            $expected = ['contents' => $expected];
         }
 
         $adapter = $this->createAdapter();
 
+
+        if ($method === 'getMetadata' || $method === 'read' || $method === 'readStream') {
+            $this->mockAdapter
+                ->method('read')
+                ->willReturn(['contents' => self::MOCK_CONTENTS]);
+        }
+
+        if ($method === 'read' || $method === 'readStream') {
+
+            $this->mockAdapter->method('getMimetype')
+                ->willReturn([])
+            ;
+        }
+
         $this->mockAdapter->expects($this->once())
             ->method($adapterMethod)
+            ->willReturn($expected)
         ;
 
-        $adapter->{$method}(...$parameters);
+        $actual = $adapter->{$method}(...$parameters);
+
+        $this->assertSame($expected, $actual);
     }
 
     //////////////////////////// TESTS WITH FORMATTING \\\\\\\\\\\\\\\\\\\\\\\\\
@@ -182,68 +209,89 @@ class RdfTest extends TestCase
     }
 
     /**
-     * @covers ::copy
-     * @covers ::createDir
-     * @covers ::delete
-     * @covers ::deleteDir
-     * @covers ::getMetadata
-     * @covers ::getVisibility
-     * @covers ::listContents
+     * @covers ::getMimeType
+     * @covers ::getSize
+     * @covers ::has
      * @covers ::read
      * @covers ::readStream
-     * @covers ::rename
-     * @covers ::setVisibility
-     * @covers ::update
-     * @covers ::updateStream
-     * @covers ::write
-     * @covers ::writeStream
      *
      * @uses \Pdsinterop\Rdf\Enum\Format
+     * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::getMetadata
      * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::setFormat
      * @uses \Pdsinterop\Rdf\Formats
      *
-     * @dataProvider provideProxyMethods
+     * @dataProvider provideConvertingMethods
      */
-    public function testRdfAdapterShouldCallInnerAdapterAndGraphWhenProxyMethodsAreCalledWithFormat($method, $parameters): void
+    public function testRdfAdapterShouldCallInnerAdapterAndGraphWhenNonProxyMethodsAreCalledWithFormat($method): void
     {
-        $this->mockAdapter = $this->getMockBuilder(AdapterInterface::class)->getMock();
-
         $formats = [
-            Format::TURTLE,
-            Format::RDF_XML,
-            Format::NOTATION_3,
-            Format::N_TRIPLES,
             Format::JSON_LD,
+            Format::N_TRIPLES,
+            Format::NOTATION_3,
+            Format::RDF_XML,
+            Format::TURTLE,
         ];
 
         $formatCount = count($formats);
 
         $adapterMethod = $method;
 
+        $adapter = $this->createAdapter();
+
         if ($method === 'readStream') {
+            /*/ The `readStream` method is currently just a proxy for `read` /*/
             $adapterMethod = 'read';
         }
 
-        if ($method === 'read' || $method === 'readStream') {
-            $this->mockAdapter
-                ->method('read')
-                ->willReturn(['contents'=> self::MOCK_CONTENTS])
-            ;
-        }
-
-        $this->mockAdapter->expects($this->exactly($formatCount))
-            ->method($adapterMethod)
+        $this->mockAdapter->method('read')
+            ->willReturn(['contents' => self::MOCK_CONTENTS_RDF])
         ;
 
-        foreach ($formats as $format) {
-            $adapter = $this->createAdapter();
-            $adapter->setFormat($format);
+        $this->mockGraph->method('serialise')
+            ->willReturn('[]')
+        ;
+
+        if ($method === 'getMimeType' || $method === 'getSize' || $method === 'has') {
+            /*/ These inner adapter method should *never* be called when working with converted (meta)data /*/
+            $this->mockAdapter->expects($this->never())
+                ->method($adapterMethod);
+
+            $this->mockAdapter
+                ->method('getMetadata')
+                ->willReturn([])
+            ;
+        } elseif ($method === 'read' || $method === 'readStream') {
+            $this->mockAdapter->expects($this->exactly($formatCount))
+                ->method($adapterMethod);
 
             $this->mockFormats->method('getFormatForExtension')
-                ->willReturn($format)
+                ->willReturn('mock format')
             ;
+        } else {
+            $this->fail('Do not know how to test for ' . $method);
+        }
 
-            $adapter->{$method}(...$parameters);
+        $expected = [
+            'contents' => '[]',
+            'mimetype' => '',
+            'path' => 'mock path',
+            'size' => 2,
+            'type' => 'file',
+        ];
+
+        if ($method === 'getMimeType') {
+            /*/ Mimetype does not require metadata or read to function.
+                Hence, it only returns one value.
+            /*/
+            $expected = ['mimetype' => ''];
+        }
+
+        foreach ($formats as $format) {
+            $adapter->setFormat($format);
+
+            $actual = $adapter->{$method}(self::MOCK_PATH);
+
+            $this->assertEquals($expected, $actual);
         }
     }
 
@@ -262,7 +310,9 @@ class RdfTest extends TestCase
             'delete' => ['delete', [$mockPath]],
             'deleteDir' => ['deleteDir', [$mockPath]],
             'getMetadata' => ['getMetadata', [$mockPath]],
+            'getSize' => ['getSize', [$mockPath]],
             'getVisibility' => ['getVisibility', [$mockPath]],
+            'getTimestamp' => ['getTimestamp', [$mockPath]],
             'listContents' => ['listContents', []],
             'read' => ['read', [$mockPath]],
             'readStream' => ['readStream', [$mockPath]],
@@ -272,6 +322,18 @@ class RdfTest extends TestCase
             'updateStream' => ['updateStream', [$mockPath, $mockResource, $mockConfig]],
             'write' => ['write', [$mockPath, $mockContents, $mockConfig]],
             'writeStream' => ['writeStream', [$mockPath, $mockResource, $mockConfig]],
+        ];
+    }
+
+    public function provideConvertingMethods(): array
+    {
+        return [
+//            'getMetadata' => ['getMetadata'],
+            'getSize' => ['getSize'],
+            'has' => ['has'],
+            'getMimeType' => ['getMimeType'],
+            'read' => ['read'],
+            'readStream' => ['readStream'],
         ];
     }
 
@@ -293,12 +355,5 @@ class RdfTest extends TestCase
             'mock format' => ['mock format'],
             Format::UNKNOWN => [Format::UNKNOWN],
         ];
-    }
-
-    ////////////////////////////// MOCKS AND STUBS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-
-    private function createMockAdapter(): void
-    {
-        $this->mockAdapter = $this->mockAdapter ?? $this->getMockBuilder(AdapterInterface::class)->getMock();
     }
 }
