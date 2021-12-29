@@ -254,7 +254,8 @@ class RdfTest extends TestCase
         if ($method === 'getMimeType' || $method === 'getSize' || $method === 'has') {
             /*/ These inner adapter method should *never* be called when working with converted (meta)data /*/
             $this->mockAdapter->expects($this->never())
-                ->method($adapterMethod);
+                ->method($adapterMethod)
+            ;
 
             $this->mockAdapter
                 ->method('getMetadata')
@@ -262,7 +263,13 @@ class RdfTest extends TestCase
             ;
         } elseif ($method === 'read' || $method === 'readStream') {
             $this->mockAdapter->expects($this->exactly($formatCount))
-                ->method($adapterMethod);
+                ->method($adapterMethod)
+            ;
+        } elseif ($method === 'getMetadata') {
+            $this->mockAdapter->expects($this->exactly($formatCount))
+                ->method($adapterMethod)
+                ->willReturn([])
+            ;
         } else {
             $this->fail('Do not know how to test for ' . $method);
         }
@@ -325,7 +332,7 @@ class RdfTest extends TestCase
     public function provideConvertingMethods(): array
     {
         return [
-//            'getMetadata' => ['getMetadata'],
+            'getMetadata' => ['getMetadata'],
             'getSize' => ['getSize'],
             'has' => ['has'],
             'getMimeType' => ['getMimeType'],
