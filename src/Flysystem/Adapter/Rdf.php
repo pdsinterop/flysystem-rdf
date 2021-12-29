@@ -14,7 +14,7 @@ use Pdsinterop\Rdf\FormatsInterface;
 /**
  * Filesystem adapter to convert RDF files to and from a default format
  */
-class Rdf implements AdapterInterface
+class Rdf implements RdfAdapterInterface
 {
     ////////////////////////////// CLASS PROPERTIES \\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
