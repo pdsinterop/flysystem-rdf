@@ -63,10 +63,10 @@
 
     <div class="container section">
         <?php foreach ($formats as $index => $format): ?>
-        <input <?php/*checked="checked"*/?> id="tab-<?= $index ?>" name="tabs" type="radio" class="tab-selector is-hidden" />
+        <input id="tab-<?= $index ?>" name="tabs" type="radio" class="tab-selector is-hidden" />
         <div class="content">
             <h3><?= $index ?></h3>
-            <pre><code><?= htmlentities($filesystem->readRdf('/foaf.rdf', $format)); ?></code></pre>
+            <pre><code><?= htmlentities($filesystem->readRdf('/foaf.rdf', $format, \Pdsinterop\Rdf\Enum\Rdf::EMPTY_NODE)) ?></code></pre>
         </div>
         <?php endforeach; ?>
     </div>
