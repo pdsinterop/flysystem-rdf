@@ -53,11 +53,11 @@ separate package.
 
 The advised install method is through composer:
 
-```
+```sh
 composer require pdsinterop/flysystem-rdf
 ```
 
-PHP version 7.1 and higher is supported. The [`mbstring`](https://www.php.net/manual/en/book.mbstring.php)
+PHP version 7.3 and higher is supported. The [`mbstring`](https://www.php.net/manual/en/book.mbstring.php)
 extension needs to be enabled in order for this package to work.
 
 ## Usage
@@ -119,7 +119,10 @@ $convertedMimeType = $filesystem
 // This also works for `has`
 $hasConvertedContents = $filesystem
     ->asMime('text/turtle')
-    ->has('/foaf.rdf');
+    ->has('/foaf.ttl');
+
+// Without using the plugin, this will be false
+$hasContents = $filesystem->has('/foaf.ttl');
 
 ```
 
@@ -145,13 +148,14 @@ $filesystem->addPlugin($plugin);
 
 // Read the contents of a RDF file in another format from what was stored in
 $content = $filesystem->readRdf('/foaf.rdf', \Pdsinterop\Rdf\Enum\Format::TURTLE);
+
 ```
 
 ## Develop
 
 - Do not forget to install the required dependencies using `composer`.
 
-- Most of the logic here involves Easyrdf and/or FlySystem. You'll want to familiarise yourself with their workings.
+- Most of the logic here involves EasyRdf and/or FlySystem. You'll want to familiarise yourself with their workings.
 
 - Test are available in the `tests/` directory. They are run by GitHub actions for any pull request. To run them,call `./bin/phpunit`
 
