@@ -155,6 +155,8 @@ $content = $filesystem->readRdf('/foaf.rdf', \Pdsinterop\Rdf\Enum\Format::TURTLE
 
 - Test are available in the `tests/` directory. They are run by GitHub actions for any pull request. To run them,call `./bin/phpunit`
 
+- The changelog can be automatically generated using [`github_changelog_generator`](https://github.com/github-changelog-generator/github-changelog-generator) with the [provided configuration file](.github_changelog_generator)
+
 ## Contribute
 
 Questions or feedback can be given by [opening an issue on GitHub](https://github.com/pdsinterop/flysystem-rdf/issues).
