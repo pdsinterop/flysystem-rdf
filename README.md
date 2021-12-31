@@ -123,6 +123,9 @@ $hasConvertedContents = $filesystem
 
 ```
 
+The adapter adds any found `.meta` files that reference a file to that file's
+metadata, which can be retrieved with `$filesystem->getMetadata($path)`.
+
 ### Plugin
 
 To use the plugin, instantiate it and add it to a Flysystem filesystem.

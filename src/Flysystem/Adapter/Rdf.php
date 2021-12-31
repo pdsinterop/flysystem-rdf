@@ -158,7 +158,7 @@ class Rdf implements RdfAdapterInterface
 
     final public function getMetadata($path)
     {
-        $metadata = $this->adapter->getMetadata($path);
+        $metadata = $this->adapter->getMetadata($path) ?? [];
 
         $format = $this->format;
 
@@ -167,7 +167,7 @@ class Rdf implements RdfAdapterInterface
             $metadata = array_merge($metadata, ['mimetype' => $this->guessMimeType($path)], $this->read($path));
         }
 
-        return $metadata;
+        return array_merge($metadata, $this->findAuxiliaryResources($path));
     }
 
     final public function getSize($path)
@@ -266,6 +266,39 @@ class Rdf implements RdfAdapterInterface
 		}
 
         return $contents;
+    }
+
+    private function findAuxiliaryResources(string $path): array
+    {
+        $metaFiles = [
+            'describedby' => $this->findInPath($path, '.meta'),
+            'acl' => $this->findInPath($path, '.acl'),
+        ];
+
+        return array_filter($metaFiles);
+    }
+
+    private function findInPath(string $originalPath, $extension)
+    {
+        $describedBy = false;
+
+        $metaPath = $originalPath . $extension;
+
+        if ($this->adapter->has($metaPath)) {
+            $describedBy = $metaPath;
+        } else {
+            do {
+                $metaPath = dirname($metaPath);
+
+                $path = '/' . ltrim($metaPath . '/' . $extension, '/');
+
+                if ($this->adapter->has($path)) {
+                    $describedBy = $path;
+                }
+            } while ($describedBy === false && $metaPath !== '/');
+        }
+
+        return $describedBy;
     }
 
     private function getExtension(string $path): string

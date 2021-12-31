@@ -25,7 +25,7 @@ class RdfTest extends TestCase
     private const MOCK_CONTENTS = 'mock contents';
     private const MOCK_CONTENTS_RDF = "@prefix rdfs: <> .\n</> rdfs:comment '' .";
     private const MOCK_MIME = 'mock mime';
-    private const MOCK_PATH = 'mock path';
+    private const MOCK_PATH = '/mock/path';
     private const MOCK_URL = 'mock url';
 
     /** @var AdapterInterface|MockObject */
@@ -143,6 +143,8 @@ class RdfTest extends TestCase
             $expected = ['contents' => $expected];
         } elseif ($method === 'getMimetype') {
             $expected = ['mimetype' => self::MOCK_MIME];
+        } elseif ($method === 'getMetadata') {
+            $expected = [];
         }
 
         $adapter = $this->createAdapter();
@@ -153,6 +155,11 @@ class RdfTest extends TestCase
                 ->willReturn(['contents' => self::MOCK_CONTENTS])
             ;
         }
+
+        $this->mockAdapter
+            ->method('has')
+            ->willReturn(false)
+        ;
 
         $this->mockAdapter->expects($this->once())
             ->method($adapterMethod)
@@ -251,24 +258,19 @@ class RdfTest extends TestCase
             ->willReturn(self::MOCK_MIME)
         ;
 
-        if ($method === 'getMimeType' || $method === 'getSize' || $method === 'has') {
+        if ($method === 'getMimeType' || $method === 'getSize') {
             /*/ These inner adapter method should *never* be called when working with converted (meta)data /*/
             $this->mockAdapter->expects($this->never())
                 ->method($adapterMethod)
             ;
-
+        } elseif ($method === 'has') {
             $this->mockAdapter
-                ->method('getMetadata')
-                ->willReturn([])
+                ->method($adapterMethod)
+                ->willReturn(false)
             ;
-        } elseif ($method === 'read' || $method === 'readStream') {
+        } elseif ($method === 'getMetadata' || $method === 'read' || $method === 'readStream') {
             $this->mockAdapter->expects($this->exactly($formatCount))
                 ->method($adapterMethod)
-            ;
-        } elseif ($method === 'getMetadata') {
-            $this->mockAdapter->expects($this->exactly($formatCount))
-                ->method($adapterMethod)
-                ->willReturn([])
             ;
         } else {
             $this->fail('Do not know how to test for ' . $method);
@@ -277,7 +279,7 @@ class RdfTest extends TestCase
         $expected = [
             'contents' => '[]',
             'mimetype' => self::MOCK_MIME,
-            'path' => 'mock path',
+            'path' => self::MOCK_PATH,
             'size' => 2,
             'type' => 'file',
         ];
@@ -296,6 +298,266 @@ class RdfTest extends TestCase
 
             $this->assertEquals($expected, $actual);
         }
+    }
+
+    //////////////////////////// TESTS FOR METADATA \\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+    /**
+     * @covers ::getMetadata
+     */
+    public function testMetaDataShouldNotContainDescribedByWhenCalledForPathWithoutMetaFile(): void
+    {
+        $adapter = $this->createAdapter();
+
+        $this->mockAdapter->method('has')->willReturn(false);
+
+        $actual = $adapter->getMetadata(self::MOCK_PATH);
+
+        $this->assertArrayNotHasKey('describedby', $actual);
+    }
+
+    /**
+     * @covers ::getMetadata
+     *
+     * @uses \Pdsinterop\Rdf\Enum\Format
+     * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::read
+     * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::setFormat
+     */
+    public function testMetaDataShouldLookForMetaFileWhenCalled(): void
+    {
+        $adapter = $this->createAdapter();
+
+        /*/ This part of the test is only needed for conversion /*/
+        $adapter->setFormat('jsonld');
+
+        $this->mockAdapter
+            ->method('read')
+            ->willReturn(['contents' => self::MOCK_CONTENTS])
+        ;
+
+        /*/ This part is always needed /*/
+        $path = self::MOCK_PATH;
+
+        $this->mockAdapter
+            ->method('has')
+            ->willReturn(true)
+        ;
+
+        $actual = $adapter->getMetadata($path);
+
+        $this->assertArrayHasKey('describedby', $actual);
+    }
+
+    /**
+     * @covers ::getMetadata
+     *
+     * @uses \Pdsinterop\Rdf\Enum\Format
+     * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::read
+     * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::setFormat
+     */
+    public function testMetaDataShouldLookForMetaFileInDirectoryWhenCalledOnFileWithoutMetaFile(): void
+    {
+        $adapter = $this->createAdapter();
+
+        /*/ This part of the test is only needed for conversion /*/
+        $adapter->setFormat('jsonld');
+
+        $this->mockAdapter
+            ->method('read')
+            ->willReturn(['contents' => self::MOCK_CONTENTS])
+        ;
+
+        /*/ This part is always needed /*/
+        $expected = '/a/longer/path/to/.meta';
+
+
+        $this->mockAdapter->expects($this->exactly(3))
+            ->method('has')
+            ->withConsecutive(
+                ['/a/longer/path/to/file.ext.meta'],
+                [$expected],
+            )
+            ->willReturnOnConsecutiveCalls(false, true, true)
+        ;
+
+        $metadata = $adapter->getMetadata('/a/longer/path/to/file.ext');
+
+        $actual = $metadata['describedby'];
+
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * @covers ::getMetadata
+     *
+     * @uses \Pdsinterop\Rdf\Enum\Format
+     * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::read
+     * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::setFormat
+     */
+    public function testMetaDataShouldLookForMetaFileInParentDirectoriesWhenCalledOnFileWithoutMetaFileInCurrentDirectory(): void
+    {
+        $adapter = $this->createAdapter();
+
+        /*/ This part of the test is only needed for conversion /*/
+        $adapter->setFormat('jsonld');
+
+        $this->mockAdapter
+            ->method('read')
+            ->willReturn(['contents' => self::MOCK_CONTENTS])
+        ;
+
+        /*/ This part is always needed /*/
+        $expected = '/.meta';
+
+        $this->mockAdapter
+            ->method('has')
+            ->withConsecutive(
+                ['/a/longer/path/to/file.ext.meta'],
+                ['/a/longer/path/to/.meta'],
+                ['/a/longer/path/.meta'],
+                ['/a/longer/.meta'],
+                ['/a/.meta'],
+                ['/.meta'],
+            )
+            ->willReturnOnConsecutiveCalls(false, false, false, false, false, true, true)
+        ;
+
+        $metadata = $adapter->getMetadata('/a/longer/path/to/file.ext');
+
+        $actual = $metadata['describedby'];
+
+        $this->assertEquals($expected, $actual);
+    }
+
+    /////////////////////////////// TESTS FOR ACL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+    /**
+     * @covers ::getMetadata
+     */
+    public function testMetaDataShouldNotContainAclWhenCalledForPathWithoutAclFile(): void
+    {
+        $adapter = $this->createAdapter();
+
+        $this->mockAdapter->method('has')->willReturn(false);
+
+        $actual = $adapter->getMetadata(self::MOCK_PATH);
+
+        $this->assertArrayNotHasKey('acl', $actual);
+    }
+
+    /**
+     * @covers ::getMetadata
+     *
+     * @uses \Pdsinterop\Rdf\Enum\Format
+     * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::read
+     * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::setFormat
+     */
+    public function testMetaDataShouldLookForAclFileWhenCalled(): void
+    {
+        $adapter = $this->createAdapter();
+
+        /*/ This part of the test is only needed for conversion /*/
+        $adapter->setFormat('jsonld');
+
+        $this->mockAdapter
+            ->method('read')
+            ->willReturn(['contents' => self::MOCK_CONTENTS])
+        ;
+
+        /*/ This part is always needed /*/
+        $path = self::MOCK_PATH;
+
+        $this->mockAdapter
+            ->method('has')
+            ->willReturn(true)
+        ;
+
+        $actual = $adapter->getMetadata($path);
+
+        $this->assertArrayHasKey('acl', $actual);
+    }
+
+    /**
+     * @covers ::getMetadata
+     *
+     * @uses \Pdsinterop\Rdf\Enum\Format
+     * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::read
+     * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::setFormat
+     */
+    public function testMetaDataShouldLookForAclFileInDirectoryWhenCalledOnFileWithoutAclFile(): void
+    {
+        $adapter = $this->createAdapter();
+
+        /*/ This part of the test is only needed for conversion /*/
+        $adapter->setFormat('jsonld');
+
+        $this->mockAdapter
+            ->method('read')
+            ->willReturn(['contents' => self::MOCK_CONTENTS])
+        ;
+
+        /*/ This part is always needed /*/
+        $expected = '/a/longer/path/to/.acl';
+
+
+        $this->mockAdapter->expects($this->exactly(3))
+            ->method('has')
+            ->withConsecutive(
+                ['/a/longer/path/to/file.ext.meta'],
+                ['/a/longer/path/to/file.ext.acl'],
+                [$expected],
+            )
+            ->willReturnOnConsecutiveCalls(true, false, true)
+        ;
+
+        $metadata = $adapter->getMetadata('/a/longer/path/to/file.ext');
+
+        $actual = $metadata['acl'];
+
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * @covers ::getMetadata
+     *
+     * @uses \Pdsinterop\Rdf\Enum\Format
+     * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::read
+     * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::setFormat
+     */
+    public function testMetaDataShouldLookForAclFileInParentDirectoriesWhenCalledOnFileWithoutAclFileInCurrentDirectory(): void
+    {
+        $adapter = $this->createAdapter();
+
+        /*/ This part of the test is only needed for conversion /*/
+        $adapter->setFormat('jsonld');
+
+        $this->mockAdapter
+            ->method('read')
+            ->willReturn(['contents' => self::MOCK_CONTENTS])
+        ;
+
+        /*/ This part is always needed /*/
+        $expected = '/.acl';
+
+        $this->mockAdapter
+            ->method('has')
+            ->withConsecutive(
+                ['/a/longer/path/to/file.ext.meta'],
+                ['/a/longer/path/to/file.ext.acl'],
+                ['/a/longer/path/to/.acl'],
+                ['/a/longer/path/.acl'],
+                ['/a/longer/.acl'],
+                ['/a/.acl'],
+                [$expected],
+            )
+            ->willReturnOnConsecutiveCalls(true, false, false, false, false, false, true)
+        ;
+
+        $metadata = $adapter->getMetadata('/a/longer/path/to/file.ext');
+
+        $actual = $metadata['acl'];
+
+        $this->assertEquals($expected, $actual);
     }
 
     /////////////////////////////// DATAPROVIDERS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
