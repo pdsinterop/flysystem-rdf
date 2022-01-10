@@ -275,30 +275,31 @@ class Rdf implements RdfAdapterInterface
             'acl' => $this->findInPath($path, '.acl'),
         ];
 
+        // Remove any empty values
         return array_filter($metaFiles);
     }
 
     private function findInPath(string $originalPath, $extension)
     {
-        $describedBy = false;
+        $subject = false;
 
-        $metaPath = $originalPath . $extension;
+        $subjectPath = $originalPath . $extension;
 
-        if ($this->adapter->has($metaPath)) {
-            $describedBy = $metaPath;
+        if ($this->adapter->has($subjectPath)) {
+            $subject = $subjectPath;
         } else {
             do {
-                $metaPath = dirname($metaPath);
+                $subjectPath = dirname($subjectPath);
 
-                $path = '/' . ltrim($metaPath . '/' . $extension, '/');
+                $path = '/' . ltrim($subjectPath . '/' . $extension, '/');
 
                 if ($this->adapter->has($path)) {
-                    $describedBy = $path;
+                    $subject = $path;
                 }
-            } while ($describedBy === false && $metaPath !== '/');
+            } while ($subject === false && $subjectPath !== '/');
         }
 
-        return $describedBy;
+        return $subject;
     }
 
     private function getExtension(string $path): string
@@ -318,9 +319,9 @@ class Rdf implements RdfAdapterInterface
         $mimetype = '';
 
         if ($metadata === []) {
-            $parentMetadata = $this->adapter->getMimetype($path);
-            if (isset($parentMetadata['mimetype'])) {
-                $metadata = $parentMetadata;
+            $originalMetadata = $this->adapter->getMimetype($path);
+            if (isset($originalMetadata['mimetype'])) {
+                $metadata = $originalMetadata;
             }
         }
 

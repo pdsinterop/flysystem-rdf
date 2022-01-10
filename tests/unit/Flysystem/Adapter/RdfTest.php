@@ -17,6 +17,8 @@ use PHPUnit\Framework\TestCase;
  * @coversDefaultClass \Pdsinterop\Rdf\Flysystem\Adapter\Rdf
  * @covers ::__construct
  * @covers ::<!public>
+ *
+ * @TODO: All long test names should be replaced by a short name and a @testdox annotation
  */
 class RdfTest extends TestCase
 {
