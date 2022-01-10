@@ -1,4 +1,4 @@
-# Contributing to Flysystem RDF
+# Contributing
 
 Thank you for your interest in contributing!
 
