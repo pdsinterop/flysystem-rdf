@@ -48,12 +48,12 @@ class ReadRdf extends AbstractPlugin
      * @param string $format RDF format to convert file to
      * @param string $url base url for parsing
      *
-     * @return array|false metadata
+     * @return string|false converted contents
      *
      * @throws FileNotFoundException
      * @throws Exception
      */
-    public function handle(string $path, string $format, string $url) : string
+    public function handle(string $path, string $format, string $url)
     {
         $converter = $this->converter;
 
@@ -65,7 +65,7 @@ class ReadRdf extends AbstractPlugin
             try {
                 $converter->parse($contents, Format::UNKNOWN, $url);
             } catch (EasyRdf_Exception $exception) {
-                $this->throwException(self::ERROR_COULD_NOT_CONVERT, [
+                throw Exception::create(self::ERROR_COULD_NOT_CONVERT, [
                     'file' => $path,
                     'format' => $format,
                     'error' => $exception->getMessage(),
@@ -82,17 +82,5 @@ class ReadRdf extends AbstractPlugin
         }
 
         return $contents;
-    }
-
-    /**
-     * @param string $error
-     * @param array $context
-     * @param \Exception|null $previous
-     *
-     * @throws Exception
-     */
-    private function throwException(string $error, array $context, \Exception $previous = null) : void
-    {
-        throw new Exception(vsprintf($error, $context), 0, $previous);
     }
 }

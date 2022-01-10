@@ -2,51 +2,72 @@
 
 namespace Pdsinterop\Rdf\Flysystem\Adapter;
 
-use EasyRdf_Exception;
-use EasyRdf_Graph;
+use EasyRdf_Exception as RdfException;
+use EasyRdf_Graph as Graph;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
+use ML\JsonLD\JsonLD;
 use Pdsinterop\Rdf\Enum\Format;
 use Pdsinterop\Rdf\Flysystem\Exception;
-use Pdsinterop\Rdf\Formats;
-use ML\JsonLD;
+use Pdsinterop\Rdf\FormatsInterface;
+
 /**
  * Filesystem adapter to convert RDF files to and from a default format
  */
-class Rdf implements AdapterInterface
+class Rdf implements RdfAdapterInterface
 {
-    private const ERROR_COULD_NOT_CONVERT = 'Could not convert file "%s" to format "%s": %s';
+    ////////////////////////////// CLASS PROPERTIES \\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+    public const ERROR_UNSUPPORTED_FORMAT = 'Given format "%s" is not supported';
+    public const ERROR_COULD_NOT_CONVERT = 'Could not convert file "%s" to format "%s": %s';
 
     /** @var AdapterInterface */
     private $adapter;
     /** @var string */
     private $format = '';
-    /** @var Formats */
+    /** @var FormatsInterface */
     private $formats;
+    /** @var Graph */
+    private $graph;
     /** @var string */
     private $url;
 
-    final public function setFormat(string $format) : void
+    //////////////////////////// GETTERS AND SETTERS \\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+    /**
+     * Retrieve a new / clean RDF Graph object
+     *
+     * @return Graph
+     */
+    private function getGraph(): Graph
     {
-        if (($format != "") && (Format::has($format) === false)) {
-            throw new Exception('Given format "' . $format . '" is not supported');
+        return clone $this->graph;
+    }
+
+    final public function setFormat(string $format): void
+    {
+        if (($format !== "") && (Format::has($format) === false)) {
+            throw Exception::create(self::ERROR_UNSUPPORTED_FORMAT, [$format]);
         }
 
         $this->format = $format;
     }
-    final public function getFormat() {
+
+    final public function getFormat(): string
+    {
 		return $this->format;
 	}
 
-	// FIXME: remove easyrdf graph from the constructor
-    final public function __construct(AdapterInterface $adapter, EasyRdf_Graph $graph, Formats $formats, string $url)
+    //////////////////////////////// PUBLIC API \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+    // @FIXME: Add JsonLD as dependency and use static calls to object instance instead of using static calls to class
+    final public function __construct(AdapterInterface $adapter, Graph $graph, FormatsInterface $formats, string $url)
     {
         $this->adapter = $adapter;
         $this->formats = $formats;
+        $this->graph = $graph;
         $this->url = $url;
     }
-
-    // =========================================================================
 
     final public function write($path, $contents, Config $config)
     {
@@ -100,20 +121,28 @@ class Rdf implements AdapterInterface
 
     final public function has($path)
     {
-        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+        return $this->getMetadata($path);
     }
 
     final public function read($path)
     {
-        $format = $this->resetFormat();
-        return $format !== ''
-            ? [
-                'type' => 'file',
+        $format = $this->format;
+
+        if ($format !== '') {
+            $contents = $this->convertedContents($path, $format);
+
+            $metaData = [
+                'contents' => $contents,
+                'mimetype' => $this->formats->getMimeForFormat($format),
                 'path' => $path,
-                'contents' => $this->convertedContents($path, $format),
-            ]
-            : call_user_func_array([$this->adapter, __FUNCTION__], func_get_args())
-        ;
+                'size' => strlen($contents), // filesize in bytes,
+                'type' => 'file',
+            ];
+        } else {
+            $metaData = $this->adapter->read($path);
+        }
+
+        return $metaData;
     }
 
     final public function readStream($path)
@@ -129,30 +158,48 @@ class Rdf implements AdapterInterface
 
     final public function getMetadata($path)
     {
-        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+        $metadata = $this->adapter->getMetadata($path) ?? [];
+
+        $format = $this->format;
+
+        if ($format !== '') {
+            // @CHECKME: Does it make more sense to call `guessMimeType` or should `getMimeType` be called?
+            $metadata = array_merge($metadata, ['mimetype' => $this->guessMimeType($path)], $this->read($path));
+        }
+
+        return array_merge($metadata, $this->findAuxiliaryResources($path));
     }
 
     final public function getSize($path)
     {
-        // @TODO: For convert request, get contents, convert and count size
-        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+        $format = $this->format;
+
+        if ($format === '') {
+            $metadata = call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+        } else {
+            $metadata = $this->getMetadata($path);
+        }
+
+        return $metadata;
     }
 
     final public function getMimeType($path)
     {
         $format = $this->resetFormat();
-        $extension = $this->getExtension($path);
-        $possibleFormat = $this->formats->getFormatForExtension($extension);
-
-        $mimeType = $this->adapter->getMimetype($path);
 
         if ($format !== '') {
-            $mimeType['mimetype'] = $this->formats->getMimeForFormat($format);
-        } elseif ($possibleFormat !== '' && $mimeType['mimetype'] === 'text/plain') {
-            $mimeType['mimetype'] = $possibleFormat;
+            $metadata = ['mimetype' => $this->formats->getMimeForFormat($format)];
+        } else {
+            $metadata = $this->adapter->getMimetype($path);
+
+            $possibleMimeType = $this->guessMimeType($path, $metadata);
+
+            if ($possibleMimeType !== '') {
+                $metadata['mimetype'] = $possibleMimeType;
+            }
         }
 
-        return $mimeType;
+        return $metadata;
     }
 
     final public function getTimestamp($path)
@@ -165,7 +212,7 @@ class Rdf implements AdapterInterface
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
 
-    // =========================================================================
+    ////////////////////////////// UTILITY METHODS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
     private function convertedContents($path, $format)
     {
@@ -173,14 +220,14 @@ class Rdf implements AdapterInterface
         $originalContents = $this->getOriginalContents($path);
         $originalFormat = $this->formats->getFormatForExtension($originalExtension);
 
-		if ($originalFormat == $format) {
+		if ($originalFormat === $format) {
 			return $originalContents;
 		}
 
 		try {
 			switch($originalFormat) {
 				case "jsonld":
-					$graph = new \EasyRdf_Graph();
+                    $graph = $this->getGraph();
 					// FIXME: parsing json gives warnings, so we're suppressing those for now.
 					$graph->parse($originalContents, "jsonld", $this->url);
 					switch ($format) {
@@ -193,15 +240,16 @@ class Rdf implements AdapterInterface
 					}
 				break;
 				default:
-					$graph = new \EasyRdf_Graph();
+                    $graph = $this->getGraph();
+                    // FIXME: guessing here helps pass another test, but we really should provide a correct format.
 					// FIXME: parsing json gives warnings, so we're suppressing those for now.
-					@$graph->parse($originalContents, "guess", $this->url); // FIXME: guessing here helps pass another test, but we really should provide a correct format.
+					@$graph->parse($originalContents, "guess", $this->url);
 					switch ($format) {
 						case "jsonld":
 							// We need to get the expanded version of the json-ld, but easyRdf doesn't provide an option for that, so we call this directly.
 							$contents = $graph->serialise($format);
-							$jsonDoc = \ML\JsonLD\JsonLD::expand($contents);
-							$contents = \ML\JsonLD\JsonLD::toString($jsonDoc);
+							$jsonDoc = JsonLD::expand($contents);
+							$contents = JsonLD::toString($jsonDoc);
 						break;
 						default:
 							$contents = $graph->serialise($format);
@@ -209,8 +257,8 @@ class Rdf implements AdapterInterface
 					}
 				break;
 			}
-		} catch (EasyRdf_Exception $exception) {
-			throw new Exception(self::ERROR_COULD_NOT_CONVERT, [
+		} catch (RdfException $exception) {
+            throw Exception::create(self::ERROR_COULD_NOT_CONVERT, [
 				'file' => $path,
 				'format' => $format,
 				'error' => $exception->getMessage(),
@@ -220,7 +268,41 @@ class Rdf implements AdapterInterface
         return $contents;
     }
 
-    private function getExtension(string $path) : string
+    private function findAuxiliaryResources(string $path): array
+    {
+        $metaFiles = [
+            'describedby' => $this->findInPath($path, '.meta'),
+            'acl' => $this->findInPath($path, '.acl'),
+        ];
+
+        // Remove any empty values
+        return array_filter($metaFiles);
+    }
+
+    private function findInPath(string $originalPath, $extension)
+    {
+        $subject = false;
+
+        $subjectPath = $originalPath . $extension;
+
+        if ($this->adapter->has($subjectPath)) {
+            $subject = $subjectPath;
+        } else {
+            do {
+                $subjectPath = dirname($subjectPath);
+
+                $path = '/' . ltrim($subjectPath . '/' . $extension, '/');
+
+                if ($this->adapter->has($path)) {
+                    $subject = $path;
+                }
+            } while ($subject === false && $subjectPath !== '/');
+        }
+
+        return $subject;
+    }
+
+    private function getExtension(string $path): string
     {
         return strtolower(pathinfo($path, PATHINFO_EXTENSION));
     }
@@ -230,6 +312,33 @@ class Rdf implements AdapterInterface
         $converted = $this->adapter->read($path);
 
         return $converted['contents'];
+    }
+
+    private function guessMimeType(string $path, array $metadata = []): string
+    {
+        $mimetype = '';
+
+        if ($metadata === []) {
+            $originalMetadata = $this->adapter->getMimetype($path);
+            if (isset($originalMetadata['mimetype'])) {
+                $metadata = $originalMetadata;
+            }
+        }
+
+        $extension = $this->getExtension($path);
+
+        $possibleMime = $this->formats->getMimeForExtension($extension);
+
+        if ($possibleMime !== ''
+            && (
+                ! isset($metadata['mimetype'])
+                || $metadata['mimetype'] === 'text/plain'
+            )
+        ) {
+            $mimetype = $possibleMime;
+        }
+
+        return $mimetype;
     }
 
     private function resetFormat() : string

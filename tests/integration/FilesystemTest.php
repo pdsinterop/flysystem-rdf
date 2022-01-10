@@ -17,8 +17,10 @@ class FilesystemTest extends TestCase
      * @param $expected
      *
      * @dataProvider provideFormatResult
+     *
+     * @coversNothing
      */
-    public function test_($format, $expected) : void
+    public function test_($format, $expected): void
     {
         $filesystem = new Filesystem(new Local(__DIR__ . '/../fixtures/'));
         $filesystem->addPlugin(new ReadRdf(new EasyRdf_Graph()));
@@ -29,7 +31,7 @@ class FilesystemTest extends TestCase
         self::assertEquals($expected, $actual);
     }
 
-    public function provideFormatResult() : array
+    public function provideFormatResult(): array
     {
         return [
             'json-ld' => [

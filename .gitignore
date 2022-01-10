@@ -1,4 +1,6 @@
 # Directories to ignore
+/.phpunit.cache
+/build
 /vendor
 
 # Files to ignore

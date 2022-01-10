@@ -2,16 +2,20 @@
 
 namespace Pdsinterop\Rdf\Flysystem\Plugin;
 
+use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemInterface;
 use League\Flysystem\Plugin\AbstractPlugin;
-use Pdsinterop\Rdf\Flysystem\Adapter\Rdf;
-use Pdsinterop\Rdf\Formats;
+use Pdsinterop\Rdf\Flysystem\Adapter\RdfAdapterInterface;
+use Pdsinterop\Rdf\Flysystem\Exception;
+use Pdsinterop\Rdf\FormatsInterface;
 
 class AsMime extends AbstractPlugin
 {
     ////////////////////////////// CLASS PROPERTIES \\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-    /** @var Formats */
+    public const ERROR_MISSING_ADAPTER = 'Plugin %s can not be used before an adapter has been added to the filesystem.';
+
+    /** @var FormatsInterface */
     private $formats;
 
     //////////////////////////// GETTERS AND SETTERS \\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -28,21 +32,22 @@ class AsMime extends AbstractPlugin
 
     //////////////////////////////// PUBLIC API \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-    final public function __construct(Formats $formats)
+    final public function __construct(FormatsInterface $formats)
     {
         $this->formats = $formats;
     }
 
-    public function handle(string $mime) : FilesystemInterface
+    public function handle(string $mime): FilesystemInterface
     {
         $filesystem = $this->filesystem;
 
-        $adapter = $filesystem->getAdapter();
+        if (! is_callable([$filesystem, 'getAdapter'])) {
+            throw Exception::create(self::ERROR_MISSING_ADAPTER, [__CLASS__]);
+        }
 
-
-        if ($adapter instanceof Rdf) {
+        if ($filesystem->getAdapter() instanceof RdfAdapterInterface) {
             $format = $this->formats->getFormatForMime($mime);
-            $adapter->setFormat($format);
+            $filesystem->getAdapter()->setFormat($format);
         }
 
         return $filesystem;
