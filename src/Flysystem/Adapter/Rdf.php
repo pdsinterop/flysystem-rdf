@@ -296,12 +296,21 @@ class Rdf implements RdfAdapterInterface
             do {
                 $subjectPath = dirname($subjectPath);
 
-                $path = '/' . ltrim($subjectPath . '/' . $extension, '/');
+                if ($subjectPath === '.' || $subjectPath === '/') {
+                    // We have reached the root of the file system
+                    if ($this->adapter->has($extension)) {
+                        $subject = $extension;
+                    }
+                    break;
+                } else {
+                    $path = $subjectPath . '/' . $extension;
 
-                if ($this->adapter->has($path)) {
-                    $subject = $path;
+                    if ($this->adapter->has($path)) {
+                        $subject = $path;
+                    }
                 }
-            } while ($subject === false && $subjectPath !== '/');
+
+            } while ($subject === false);
         }
 
         return $subject;

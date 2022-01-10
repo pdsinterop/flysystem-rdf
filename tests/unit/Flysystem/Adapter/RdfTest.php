@@ -370,19 +370,19 @@ class RdfTest extends TestCase
         ;
 
         /*/ This part is always needed /*/
-        $expected = '/a/longer/path/to/.meta';
+        $expected = 'a/longer/path/to/.meta';
 
 
         $this->mockAdapter->expects($this->exactly(3))
             ->method('has')
             ->withConsecutive(
-                ['/a/longer/path/to/file.ext.meta'],
+                ['a/longer/path/to/file.ext.meta'],
                 [$expected],
             )
             ->willReturnOnConsecutiveCalls(false, true, true)
         ;
 
-        $metadata = $adapter->getMetadata('/a/longer/path/to/file.ext');
+        $metadata = $adapter->getMetadata('a/longer/path/to/file.ext');
 
         $actual = $metadata['describedby'];
 
@@ -409,27 +409,31 @@ class RdfTest extends TestCase
         ;
 
         /*/ This part is always needed /*/
-        $expected = '/.meta';
+        $expected = '.meta';
 
         $this->mockAdapter
             ->method('has')
             ->withConsecutive(
-                ['/a/longer/path/to/file.ext.meta'],
-                ['/a/longer/path/to/.meta'],
-                ['/a/longer/path/.meta'],
-                ['/a/longer/.meta'],
-                ['/a/.meta'],
-                ['/.meta'],
+                ['a/longer/path/to/file.ext.meta'],
+                ['a/longer/path/to/.meta'],
+                ['a/longer/path/.meta'],
+                ['a/longer/.meta'],
+                ['a/.meta'],
+                [$expected],
             )
             ->willReturnOnConsecutiveCalls(false, false, false, false, false, true, true)
         ;
 
-        $metadata = $adapter->getMetadata('/a/longer/path/to/file.ext');
+        $metadata = $adapter->getMetadata('a/longer/path/to/file.ext');
 
         $actual = $metadata['describedby'];
 
         $this->assertEquals($expected, $actual);
     }
+
+    // @TODO: Add test to prove `getMetadata` is not called for a `has` lookup
+
+    // @TODO: Add test to document behaviour for metadata calls for $paths with nd without leading slash `/`
 
     /////////////////////////////// TESTS FOR ACL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
@@ -539,7 +543,7 @@ class RdfTest extends TestCase
         ;
 
         /*/ This part is always needed /*/
-        $expected = '/.acl';
+        $expected = '.acl';
 
         $this->mockAdapter
             ->method('has')
