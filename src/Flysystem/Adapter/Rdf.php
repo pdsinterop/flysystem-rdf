@@ -121,7 +121,12 @@ class Rdf implements RdfAdapterInterface
 
     final public function has($path)
     {
-        return $this->getMetadata($path);
+        if ($this->format === "") {
+            $metadata = call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+        } else {
+            $metadata = $this->getMetadata($path);
+        }
+        return $metadata;
     }
 
     final public function read($path)
