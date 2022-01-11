@@ -121,11 +121,12 @@ class Rdf implements RdfAdapterInterface
 
     final public function has($path)
     {
-        if ($this->format === "") {
-            $metadata = call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
-        } else {
+        $metadata = call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+
+        if ($this->format !== '' || $metadata === false) {
             $metadata = $this->getMetadata($path);
         }
+
         return $metadata;
     }
 
@@ -163,7 +164,11 @@ class Rdf implements RdfAdapterInterface
 
     final public function getMetadata($path)
     {
-        $metadata = $this->adapter->getMetadata($path) ?? [];
+        $metadata = [];
+
+        if ($this->adapter->has($path)) {
+            $this->adapter->getMetadata($path) ?? [];
+        }
 
         $format = $this->format;
 
