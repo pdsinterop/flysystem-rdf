@@ -200,7 +200,11 @@ class Rdf implements RdfAdapterInterface
         if ($format !== '') {
             $metadata = ['mimetype' => $this->formats->getMimeForFormat($format)];
         } else {
-            $metadata = $this->adapter->getMimetype($path);
+            $metadata = [];
+
+            if ($this->adapter->has($path)) {
+                $metadata = $this->adapter->getMimetype($path);
+            }
 
             $possibleMimeType = $this->guessMimeType($path, $metadata);
 
@@ -338,7 +342,11 @@ class Rdf implements RdfAdapterInterface
         $mimetype = '';
 
         if ($metadata === []) {
-            $originalMetadata = $this->adapter->getMimetype($path);
+            $originalMetadata = [];
+            if ($this->adapter->has($path)) {
+                $originalMetadata = $this->adapter->getMimetype($path);
+            }
+
             if (isset($originalMetadata['mimetype'])) {
                 $metadata = $originalMetadata;
             }

@@ -145,9 +145,7 @@ class RdfTest extends TestCase
         if ($method === 'read' || $method === 'readStream') {
             $adapterMethod = 'read';
             $expected = ['contents' => $expected];
-        } elseif ($method === 'getMimetype') {
-            $expected = ['mimetype' => self::MOCK_MIME];
-        } elseif ($method === 'getMetadata') {
+        } elseif ($method === 'getMetadata' || $method === 'getMimetype') {
             $count = 0;
             $expected = [];
         }
@@ -375,15 +373,15 @@ class RdfTest extends TestCase
         /*/ This part is always needed /*/
         $expected = 'a/longer/path/to/.meta';
 
-
-        $this->mockAdapter->expects($this->exactly(4))
+        $this->mockAdapter->expects($this->exactly(5))
             ->method('has')
             ->withConsecutive(
                 ['a/longer/path/to/file.ext'],
+                ['a/longer/path/to/file.ext'],
                 ['a/longer/path/to/file.ext.meta'],
-                [$expected],
+                ['a/longer/path/to/.meta'],
             )
-            ->willReturnOnConsecutiveCalls(false, false, true, true)
+            ->willReturnOnConsecutiveCalls(false, false, false, true, true)
         ;
 
         $metadata = $adapter->getMetadata('a/longer/path/to/file.ext');
@@ -415,9 +413,10 @@ class RdfTest extends TestCase
         /*/ This part is always needed /*/
         $expected = '.meta';
 
-        $this->mockAdapter
+        $this->mockAdapter->expects($this->exactly(9))
             ->method('has')
             ->withConsecutive(
+                ['a/longer/path/to/file.ext'],
                 ['a/longer/path/to/file.ext'],
                 ['a/longer/path/to/file.ext.meta'],
                 ['a/longer/path/to/.meta'],
@@ -426,7 +425,7 @@ class RdfTest extends TestCase
                 ['a/.meta'],
                 [$expected],
             )
-            ->willReturnOnConsecutiveCalls(false, false, false, false, false, false, true, true)
+            ->willReturnOnConsecutiveCalls(false, false, false, false, false, false, false, true, true)
         ;
 
         $metadata = $adapter->getMetadata('a/longer/path/to/file.ext');
@@ -511,15 +510,16 @@ class RdfTest extends TestCase
         $expected = '/a/longer/path/to/.acl';
 
 
-        $this->mockAdapter->expects($this->exactly(4))
+        $this->mockAdapter->expects($this->exactly(5))
             ->method('has')
             ->withConsecutive(
+                ['/a/longer/path/to/file.ext'],
                 ['/a/longer/path/to/file.ext'],
                 ['/a/longer/path/to/file.ext.meta'],
                 ['/a/longer/path/to/file.ext.acl'],
                 [$expected],
             )
-            ->willReturnOnConsecutiveCalls(true, true, false, true)
+            ->willReturnOnConsecutiveCalls(true, true, true, false, true)
         ;
 
         $metadata = $adapter->getMetadata('/a/longer/path/to/file.ext');
@@ -551,9 +551,10 @@ class RdfTest extends TestCase
         /*/ This part is always needed /*/
         $expected = '.acl';
 
-        $this->mockAdapter
+        $this->mockAdapter->expects($this->exactly(9))
             ->method('has')
             ->withConsecutive(
+                ['/a/longer/path/to/file.ext'],
                 ['/a/longer/path/to/file.ext'],
                 ['/a/longer/path/to/file.ext.meta'],
                 ['/a/longer/path/to/file.ext.acl'],
@@ -563,7 +564,7 @@ class RdfTest extends TestCase
                 ['/a/.acl'],
                 [$expected],
             )
-            ->willReturnOnConsecutiveCalls(true, true, false, false, false, false, false, true)
+            ->willReturnOnConsecutiveCalls(true, true, true, false, false, false, false, false, true)
         ;
 
         $metadata = $adapter->getMetadata('/a/longer/path/to/file.ext');
