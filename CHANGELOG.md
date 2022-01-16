@@ -1,5 +1,17 @@
 # Changelog
 
+## [v0.4.3](https://github.com/pdsinterop/flysystem-rdf/tree/v0.4.3) (2022-01-16)
+
+[Full Changelog](https://github.com/pdsinterop/flysystem-rdf/compare/v0.4.2...v0.4.3)
+
+## [v0.4.2](https://github.com/pdsinterop/flysystem-rdf/tree/v0.4.2) (2022-01-11)
+
+[Full Changelog](https://github.com/pdsinterop/flysystem-rdf/compare/v0.4.1...v0.4.2)
+
+## [v0.4.1](https://github.com/pdsinterop/flysystem-rdf/tree/v0.4.1) (2022-01-10)
+
+[Full Changelog](https://github.com/pdsinterop/flysystem-rdf/compare/v0.4.0...v0.4.1)
+
 ## [v0.4.0](https://github.com/pdsinterop/flysystem-rdf/tree/v0.4.0) (2022-01-10)
 
 [Full Changelog](https://github.com/pdsinterop/flysystem-rdf/compare/v0.3.0...v0.4.0)
