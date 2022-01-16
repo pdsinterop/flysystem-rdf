@@ -162,6 +162,18 @@ class Rdf implements RdfAdapterInterface
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
 
+/*/
+    @TODO: Add metadata for:
+
+    - [ ] rdf:type - A class whose URI is the expansion of the URI Template [RFC6570] http://www.w3.org/ns/iana/media-types/{+iana-media-type}#Resource,
+    - [ ] stat:size - A non-negative integer giving the size of the resource in bytes.
+    - [ ] dcterms:modified - The date and time when the resource was last modified.
+	  The Last-Modified header value of a resource should retrun the same value
+    - [ ] stat:mtime - The Unix time when the resource was last modified.
+    - [ ] '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"'
+
+    Should that be added here or in a separate Solid Metadata adapter?
+/*/
     final public function getMetadata($path)
     {
         $metadata = [];
