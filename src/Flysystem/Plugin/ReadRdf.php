@@ -2,8 +2,8 @@
 
 namespace Pdsinterop\Rdf\Flysystem\Plugin;
 
-use EasyRdf_Exception;
-use EasyRdf_Graph;
+use EasyRdf\Exception as RdfException;
+use EasyRdf\Graph as Graph;
 use League\Flysystem\FileNotFoundException;
 use League\Flysystem\Plugin\AbstractPlugin;
 use Pdsinterop\Rdf\Enum\Format;
@@ -14,7 +14,7 @@ class ReadRdf extends AbstractPlugin
     ////////////////////////////// CLASS PROPERTIES \\\\\\\\\\\\\\\\\\\\\\\\\\\\
     private const ERROR_COULD_NOT_CONVERT = 'Could not convert file "%s" to format "%s": %s';
 
-    /** @var EasyRdf_Graph */
+    /** @var Graph */
     private $converter;
 
     //////////////////////////// GETTERS AND SETTERS \\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -34,9 +34,9 @@ class ReadRdf extends AbstractPlugin
     /**
      * GetAsRdf constructor.
      *
-     * @param EasyRdf_Graph $rdfConverter
+     * @param Graph $rdfConverter
      */
-    final public function __construct(EasyRdf_Graph $rdfConverter)
+    final public function __construct(Graph $rdfConverter)
     {
         $this->converter = $rdfConverter;
     }
@@ -64,7 +64,7 @@ class ReadRdf extends AbstractPlugin
         if (is_string($contents)) {
             try {
                 $converter->parse($contents, Format::UNKNOWN, $url);
-            } catch (EasyRdf_Exception $exception) {
+            } catch (RdfException $exception) {
                 throw Exception::create(self::ERROR_COULD_NOT_CONVERT, [
                     'file' => $path,
                     'format' => $format,

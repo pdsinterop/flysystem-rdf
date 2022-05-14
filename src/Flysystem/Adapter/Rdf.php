@@ -2,8 +2,8 @@
 
 namespace Pdsinterop\Rdf\Flysystem\Adapter;
 
-use EasyRdf_Exception as RdfException;
-use EasyRdf_Graph as Graph;
+use EasyRdf\Exception as RdfException;
+use EasyRdf\Graph as Graph;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
 use ML\JsonLD\JsonLD;
