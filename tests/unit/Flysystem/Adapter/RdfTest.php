@@ -3,7 +3,7 @@
 namespace Pdsinterop\Rdf\Flysystem\Adapter;
 
 use ArgumentCountError;
-use EasyRdf_Graph as Graph;
+use EasyRdf\Graph as Graph;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
 use Pdsinterop\Rdf\Enum\Format;
