@@ -2,7 +2,7 @@
 
 namespace Pdsinterop\Rdf\Flysystem\Plugin;
 
-use EasyRdf_Graph;
+use EasyRdf\Graph as Graph;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
 use Pdsinterop\Rdf\Enum\Format;
@@ -23,7 +23,7 @@ class FilesystemTest extends TestCase
     public function test_($format, $expected): void
     {
         $filesystem = new Filesystem(new Local(__DIR__ . '/../fixtures/'));
-        $filesystem->addPlugin(new ReadRdf(new EasyRdf_Graph()));
+        $filesystem->addPlugin(new ReadRdf(new Graph()));
 
         /** @noinspection PhpUndefinedMethodInspection */
         $actual = $filesystem->readRdf('foaf.rdf', $format, 'server');
