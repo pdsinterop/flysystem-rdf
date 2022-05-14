@@ -83,19 +83,19 @@ ntriples,
                 Format::NOTATION_3,
                 <<<'n3'
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
-@prefix ns0: <http://www.w3.org/ns/ldp#> .
-@prefix ns1: <http://www.w3.org/ns/solid/terms#> .
-@prefix ns2: <http://www.w3.org/ns/pim/space#> .
+@prefix ldp: <http://www.w3.org/ns/ldp#> .
+@prefix ns0: <http://www.w3.org/ns/solid/terms#> .
+@prefix ns1: <http://www.w3.org/ns/pim/space#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix ns3: <http://webns.net/mvcb/> .
+@prefix ns2: <http://webns.net/mvcb/> .
 
 </server#me>
   a foaf:Person ;
-  ns0:inbox </inbox/> ;
-  ns1:account </> ;
-  ns1:privateTypeIndex </settings/privateTypeIndex.ttl> ;
-  ns1:publicTypeIndex </settings/publicTypeIndex.ttl> ;
-  ns2:preferencesFile </settings/preferencesFile.ttl> ;
+  ldp:inbox </inbox/> ;
+  ns0:account </> ;
+  ns0:privateTypeIndex </settings/privateTypeIndex.ttl> ;
+  ns0:publicTypeIndex </settings/publicTypeIndex.ttl> ;
+  ns1:preferencesFile </settings/preferencesFile.ttl> ;
   foaf:depiction <https://www.gravatar.com/avatar/f8d7c4a4899736c59ec1e40c7021d477?s=1024> ;
   foaf:family_name "Peachey" ;
   foaf:givenname "Ben" ;
@@ -124,8 +124,8 @@ ntriples,
   a foaf:PersonalProfileDocument ;
   foaf:maker </server#me> ;
   foaf:primaryTopic </server#me> ;
-  ns3:generatorAgent <http://www.ldodds.com/foaf/foaf-a-matic> ;
-  ns3:errorReportsTo <mailto:leigh@ldodds.com> .
+  ns2:generatorAgent <http://www.ldodds.com/foaf/foaf-a-matic> ;
+  ns2:errorReportsTo <mailto:leigh@ldodds.com> .
 
 
 n3,
@@ -135,19 +135,19 @@ n3,
                 Format::TURTLE,
                 <<<'TURTLE'
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
-@prefix ns0: <http://www.w3.org/ns/ldp#> .
-@prefix ns1: <http://www.w3.org/ns/solid/terms#> .
-@prefix ns2: <http://www.w3.org/ns/pim/space#> .
+@prefix ldp: <http://www.w3.org/ns/ldp#> .
+@prefix ns0: <http://www.w3.org/ns/solid/terms#> .
+@prefix ns1: <http://www.w3.org/ns/pim/space#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix ns3: <http://webns.net/mvcb/> .
+@prefix ns2: <http://webns.net/mvcb/> .
 
 </server#me>
   a foaf:Person ;
-  ns0:inbox </inbox/> ;
-  ns1:account </> ;
-  ns1:privateTypeIndex </settings/privateTypeIndex.ttl> ;
-  ns1:publicTypeIndex </settings/publicTypeIndex.ttl> ;
-  ns2:preferencesFile </settings/preferencesFile.ttl> ;
+  ldp:inbox </inbox/> ;
+  ns0:account </> ;
+  ns0:privateTypeIndex </settings/privateTypeIndex.ttl> ;
+  ns0:publicTypeIndex </settings/publicTypeIndex.ttl> ;
+  ns1:preferencesFile </settings/preferencesFile.ttl> ;
   foaf:depiction <https://www.gravatar.com/avatar/f8d7c4a4899736c59ec1e40c7021d477?s=1024> ;
   foaf:family_name "Peachey" ;
   foaf:givenname "Ben" ;
@@ -176,8 +176,8 @@ n3,
   a foaf:PersonalProfileDocument ;
   foaf:maker </server#me> ;
   foaf:primaryTopic </server#me> ;
-  ns3:generatorAgent <http://www.ldodds.com/foaf/foaf-a-matic> ;
-  ns3:errorReportsTo <mailto:leigh@ldodds.com> .
+  ns2:generatorAgent <http://www.ldodds.com/foaf/foaf-a-matic> ;
+  ns2:errorReportsTo <mailto:leigh@ldodds.com> .
 
 
 TURTLE,
