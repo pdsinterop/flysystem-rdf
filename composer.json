@@ -12,9 +12,9 @@
   "license": "MIT",
   "name": "pdsinterop/flysystem-rdf",
   "require": {
-    "php": "^7.3",
+    "php": "^8.0",
     "ext-mbstring": "*",
-    "easyrdf/easyrdf": "^0.9.1",
+    "easyrdf/easyrdf": "^1.1.1",
     "league/flysystem": "^1.0",
     "ml/json-ld": "^1.2"
   },
