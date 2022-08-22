@@ -2,8 +2,8 @@
 
 namespace Pdsinterop\Rdf\Flysystem\Adapter;
 
-use EasyRdf_Exception as RdfException;
-use EasyRdf_Graph as Graph;
+use EasyRdf\Exception as RdfException;
+use EasyRdf\Graph as Graph;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
 use ML\JsonLD\JsonLD;
@@ -179,17 +179,17 @@ class Rdf implements RdfAdapterInterface
         $metadata = [];
 
         if ($this->adapter->has($path)) {
-            $this->adapter->getMetadata($path) ?? [];
+            $metadata = $this->adapter->getMetadata($path) ?? [];
+	    $format = $this->format;
+
+            if ($format !== '') {
+                // @CHECKME: Does it make more sense to call `guessMimeType` or should `getMimeType` be called?
+                $metadata = array_merge($metadata, ['mimetype' => $this->guessMimeType($path)], $this->read($path));
+            }
+            return array_merge($metadata, $this->findAuxiliaryResources($path));
+        } else {
+            return $metadata;
         }
-
-        $format = $this->format;
-
-        if ($format !== '') {
-            // @CHECKME: Does it make more sense to call `guessMimeType` or should `getMimeType` be called?
-            $metadata = array_merge($metadata, ['mimetype' => $this->guessMimeType($path)], $this->read($path));
-        }
-
-        return array_merge($metadata, $this->findAuxiliaryResources($path));
     }
 
     final public function getSize($path)

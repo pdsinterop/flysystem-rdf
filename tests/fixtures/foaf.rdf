@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns:foaf="http://xmlns.com/foaf/0.1/"
-         xmlns:ns0="http://www.w3.org/ns/ldp#"
-         xmlns:ns1="http://www.w3.org/ns/solid/terms#"
-         xmlns:ns2="http://www.w3.org/ns/pim/space#"
+         xmlns:ldp="http://www.w3.org/ns/ldp#"
+         xmlns:ns0="http://www.w3.org/ns/solid/terms#"
+         xmlns:ns1="http://www.w3.org/ns/pim/space#"
          xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
-         xmlns:ns3="http://webns.net/mvcb/">
+         xmlns:ns2="http://webns.net/mvcb/">
 
   <foaf:Person rdf:about="/server#me">
-    <ns0:inbox rdf:resource="/inbox/"/>
-    <ns1:account rdf:resource="/"/>
-    <ns1:privateTypeIndex rdf:resource="/settings/privateTypeIndex.ttl"/>
-    <ns1:publicTypeIndex rdf:resource="/settings/publicTypeIndex.ttl"/>
-    <ns2:preferencesFile rdf:resource="/settings/preferencesFile.ttl"/>
+    <ldp:inbox rdf:resource="/inbox/"/>
+    <ns0:account rdf:resource="/"/>
+    <ns0:privateTypeIndex rdf:resource="/settings/privateTypeIndex.ttl"/>
+    <ns0:publicTypeIndex rdf:resource="/settings/publicTypeIndex.ttl"/>
+    <ns1:preferencesFile rdf:resource="/settings/preferencesFile.ttl"/>
     <foaf:depiction rdf:resource="https://www.gravatar.com/avatar/f8d7c4a4899736c59ec1e40c7021d477?s=1024"/>
     <foaf:family_name>Peachey</foaf:family_name>
     <foaf:givenname>Ben</foaf:givenname>
@@ -46,8 +46,8 @@
   <foaf:PersonalProfileDocument rdf:about="/server">
     <foaf:maker rdf:resource="/server#me"/>
     <foaf:primaryTopic rdf:resource="/server#me"/>
-    <ns3:generatorAgent rdf:resource="http://www.ldodds.com/foaf/foaf-a-matic"/>
-    <ns3:errorReportsTo rdf:resource="mailto:leigh@ldodds.com"/>
+    <ns2:generatorAgent rdf:resource="http://www.ldodds.com/foaf/foaf-a-matic"/>
+    <ns2:errorReportsTo rdf:resource="mailto:leigh@ldodds.com"/>
   </foaf:PersonalProfileDocument>
 
 </rdf:RDF>

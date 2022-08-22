@@ -91,7 +91,7 @@ $adapter = new League\Flysystem\Adapter\Local('/path/to/files/');
 // Create the RDF Adapter
 $rdfAdapter = new \Pdsinterop\Rdf\Flysystem\Adapter\Rdf(
     $adapter,
-    new \EasyRdf_Graph(),
+    new \EasyRdf\Graph(),
     $formats,
     'server'
 );
@@ -144,7 +144,7 @@ $adapter = new League\Flysystem\Adapter\Local('/path/to/files/');
 $filesystem = new League\Flysystem\Filesystem($adapter);
 
 // create and add the RdF Plugin
-$plugin = new \Pdsinterop\Rdf\Flysystem\Plugin\ReadRdf(new \EasyRdf_Graph());
+$plugin = new \Pdsinterop\Rdf\Flysystem\Plugin\ReadRdf(new \EasyRdf\Graph());
 $filesystem->addPlugin($plugin);
 
 // Read the contents of a RDF file in another format from what was stored in

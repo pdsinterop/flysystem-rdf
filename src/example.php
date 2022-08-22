@@ -6,7 +6,7 @@
 
     $adapter = new League\Flysystem\Adapter\Local(__DIR__ . '/../tests/fixtures');
     $filesystem = new League\Flysystem\Filesystem($adapter);
-    $graph = new \EasyRdf_Graph();
+    $graph = new \EasyRdf\Graph();
     $plugin = new \Pdsinterop\Rdf\Flysystem\Plugin\ReadRdf($graph);
 
     $filesystem->addPlugin($plugin);

@@ -3,8 +3,8 @@
 namespace Pdsinterop\Rdf\Flysystem\Plugin;
 
 use ArgumentCountError;
-use EasyRdf_Exception;
-use EasyRdf_Graph;
+use EasyRdf\Exception as RdfException;
+use EasyRdf\Graph as Graph;
 use Error;
 use League\Flysystem\FileNotFoundException;
 use League\Flysystem\FilesystemInterface;
@@ -211,7 +211,7 @@ class ReadRdfTest extends TestCase
         $mockFilesystem = $this->getMockFilesystem(self::MOCK_PATH, self::MOCK_CONTENTS);
 
         $mockGraph->method('parse')
-            ->willThrowException(new EasyRdf_Exception())
+            ->willThrowException(new RdfException())
         ;
 
         $plugin = new ReadRdf($mockGraph);
@@ -285,11 +285,11 @@ class ReadRdfTest extends TestCase
     ////////////////////////////// MOCKS AND STUBS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
     /**
-     * @return EasyRdf_Graph | MockObject
+     * @return EasyRdf\Graph | MockObject
      */
-    private function getMockEasyRdfGraph(): EasyRdf_Graph
+    private function getMockEasyRdfGraph(): Graph
     {
-        return $this->getMockBuilder(EasyRdf_Graph::class)
+        return $this->getMockBuilder(Graph::class)
             ->disableOriginalConstructor()
             ->getMock();
     }
