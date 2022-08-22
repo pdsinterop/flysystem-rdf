@@ -285,6 +285,8 @@ class RdfTest extends TestCase
             'path' => self::MOCK_PATH,
             'size' => 2,
             'type' => 'file',
+            'describedby' => '/mock/path.meta',
+            'acl' => '/mock/path.acl',
         ];
 
         if ($method === 'getMimeType') {

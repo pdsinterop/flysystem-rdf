@@ -144,6 +144,7 @@ class Rdf implements RdfAdapterInterface
                 'size' => strlen($contents), // filesize in bytes,
                 'type' => 'file',
             ];
+            $metaData = array_merge($metaData, $this->findAuxiliaryResources($path));
         } else {
             $metaData = $this->adapter->read($path);
         }
@@ -186,7 +187,7 @@ class Rdf implements RdfAdapterInterface
                 // @CHECKME: Does it make more sense to call `guessMimeType` or should `getMimeType` be called?
                 $metadata = array_merge($metadata, ['mimetype' => $this->guessMimeType($path)], $this->read($path));
             }
-            return array_merge($metadata, $this->findAuxiliaryResources($path));
+            return array_merge($metadata);
         } else {
             return $metadata;
         }
