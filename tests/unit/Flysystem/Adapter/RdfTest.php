@@ -32,7 +32,7 @@ class RdfTest extends TestCase
 
     /** @var AdapterInterface|MockObject */
     private $mockAdapter;
-    /** @var Formats|MockObject */
+    /** @var FormatsInterface|MockObject */
     private $mockFormats;
     /** @var Graph|MockObject */
     private $mockGraph;
@@ -261,21 +261,21 @@ class RdfTest extends TestCase
             ->willReturn(self::MOCK_MIME)
         ;
 
-        if ($method === 'getMetadata' || $method === 'getMimeType' || $method === 'getSize') {
-            /*/ These inner adapter method should *never* be called when working with converted (meta)data /*/
-            $this->mockAdapter->expects($this->never())
-                ->method($adapterMethod)
-            ;
-        } elseif ($method === 'has') {
-            $this->mockAdapter
-                ->method($adapterMethod)
-                ->willReturn(false)
-            ;
-        } elseif ($method === 'read' || $method === 'readStream') {
+        /*/ This inner adapter method should *never* be called when working with converted (meta)data /*/
+        $this->mockAdapter->expects($this->never())->method('getSize');
+
+        /*/ Lets pretend the file exists /*/
+        $this->mockAdapter->method('has')->willReturn(true);
+
+        if ($method === 'read' || $method === 'readStream') {
             $this->mockAdapter->expects($this->exactly($formatCount))
-                ->method($adapterMethod)
-            ;
-        } else {
+                ->method($adapterMethod);
+        } elseif (
+               $method !== 'getMetadata'
+            && $method !== 'getMimeType'
+            && $method !== 'getSize'
+            && $method !== 'has'
+        ) {
             $this->fail('Do not know how to test for ' . $method);
         }
 
@@ -381,7 +381,7 @@ class RdfTest extends TestCase
                 ['a/longer/path/to/file.ext.meta'],
                 ['a/longer/path/to/.meta'],
             )
-            ->willReturnOnConsecutiveCalls(false, false, false, true, true)
+            ->willReturnOnConsecutiveCalls(true, true, false, true, true)
         ;
 
         $metadata = $adapter->getMetadata('a/longer/path/to/file.ext');
@@ -425,8 +425,16 @@ class RdfTest extends TestCase
                 ['a/.meta'],
                 [$expected],
             )
-            ->willReturnOnConsecutiveCalls(false, false, false, false, false, false, false, true, true)
-        ;
+            ->willReturnOnConsecutiveCalls(
+                true,  // 'a/longer/path/to/file.ext'
+                true,  // 'a/longer/path/to/file.ext'
+                false, // 'a/longer/path/to/file.ext.meta'
+                false, // 'a/longer/path/to/.meta'
+                false, // 'a/longer/path/.meta'
+                false, // 'a/longer/.meta'
+                false, // 'a/.meta'
+                true,  // '.meta'
+                true);
 
         $metadata = $adapter->getMetadata('a/longer/path/to/file.ext');
 
