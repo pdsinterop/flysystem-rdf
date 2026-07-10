@@ -3,6 +3,7 @@
 namespace Pdsinterop\Rdf;
 
 use Pdsinterop\Rdf\Enum\Format;
+use Pdsinterop\Rdf\Enum\ExtensionMimes;
 
 class Formats implements FormatsInterface
 {
@@ -112,8 +113,14 @@ class Formats implements FormatsInterface
     final public function getMimeForExtension(string $extension): string
     {
         $format = $this->getFormatForExtension($extension);
-
-        return $this->getMimeForFormat($format);
+        $mime = $this->getMimeForFormat($format);
+        if ($mime !== '') {
+            return $mime;
+        }
+        if (isset(ExtensionMimes::EXTENSION_MIMES[$extension])) {
+            return ExtensionMimes::EXTENSION_MIMES[$extension];
+        }
+        return ''; // no idea what this is;
     }
 
     final public function getMimeForFormat(string $format): string
