@@ -39,7 +39,7 @@ class RdfTest extends TestCase
 
     private function createAdapter(): Rdf
     {
-        $this->mockAdapter = $this->mockAdapter ?? $this->getMockBuilder(AdapterInterface::class)->getMock();
+        $this->mockAdapter = $this->mockAdapter ?? $this->getMockBuilder(FilesystemAdapter::class)->getMock();
         $this->mockGraph = $this->getMockBuilder(Graph::class)->getMock();
         $this->mockFormats = $this->getMockBuilder(FormatsInterface::class)->getMock();
 
@@ -67,7 +67,7 @@ class RdfTest extends TestCase
         $this->expectException(ArgumentCountError::class);
         $this->expectExceptionMessage('1 passed');
 
-        $mockAdapter = $this->getMockBuilder(AdapterInterface::class)
+        $mockAdapter = $this->getMockBuilder(FilesystemAdapter::class)
             ->getMock()
         ;
 
@@ -82,7 +82,7 @@ class RdfTest extends TestCase
         $this->expectException(ArgumentCountError::class);
         $this->expectExceptionMessage('2 passed');
 
-        $mockAdapter = $this->getMockBuilder(AdapterInterface::class)->getMock();
+        $mockAdapter = $this->getMockBuilder(FilesystemAdapter::class)->getMock();
         $mockGraph = $this->getMockBuilder(Graph::class)->getMock();
 
         new Rdf($mockAdapter, $mockGraph);
@@ -96,7 +96,7 @@ class RdfTest extends TestCase
         $this->expectException(ArgumentCountError::class);
         $this->expectExceptionMessage('3 passed');
 
-        $mockAdapter = $this->getMockBuilder(AdapterInterface::class)->getMock();
+        $mockAdapter = $this->getMockBuilder(FilesystemAdapter::class)->getMock();
         $mockGraph = $this->getMockBuilder(Graph::class)->getMock();
         $mockFormats = $this->getMockBuilder(Formats::class)->getMock();
 
