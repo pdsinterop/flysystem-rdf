@@ -146,6 +146,8 @@ class RdfTest extends TestCase
         } elseif ($method === 'getMetadata' || $method === 'getMimetype') {
             $count = 0;
             $expected = [];
+        } elseif ($method === 'copy' || $method === 'createDirectory' || $method === 'deleteDirectory' || $method === 'delete') {
+            $expected = void;
         }
 
         $adapter = $this->createAdapter();
