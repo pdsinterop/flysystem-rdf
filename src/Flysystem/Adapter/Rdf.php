@@ -69,57 +69,57 @@ class Rdf implements RdfAdapterInterface
         $this->url = $url;
     }
 
-    final public function write(string $path, $contents, Config $config)
+    final public function write(string $path, string $contents, Config $config): void
+    {
+        call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+    }
+
+    final public function writeStream(string $path, $contents, Config $config): void
+    {
+        call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+    }
+
+    final public function move(string $source, string $destination, Config $config): void
+    {
+        call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+    }
+
+    final public function copy(string $source, string $destination, Config $config): void
+    {
+        call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+    }
+
+    final public function delete($path): void
+    {
+        call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+    }
+
+    final public function deleteDirectory($dirname): void
+    {
+        call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+    }
+
+    final public function createDirectory(string $path, Config $config): void
+    {
+        call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+    }
+
+    final public function setVisibility(string $path, string $visibility): void
+    {
+        call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+    }
+
+    final public function fileExists(string $path): bool
     {
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
 
-    final public function writeStream($path, $resource, Config $config)
+    final public function directoryExists(string $path): bool
     {
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
 
-    final public function move($path, $newpath)
-    {
-        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
-    }
-
-    final public function copy($path, $newpath)
-    {
-        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
-    }
-
-    final public function delete($path)
-    {
-        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
-    }
-
-    final public function deleteDirectory($dirname)
-    {
-        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
-    }
-
-    final public function createDirectory($dirname, Config $config)
-    {
-        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
-    }
-
-    final public function setVisibility($path, $visibility)
-    {
-        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
-    }
-
-    final public function fileExists(string $path)
-    {
-        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
-    }
-
-    final public function directoryExists(string $path)
-    {
-        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
-    }
-
-    final public function read(string $path)
+    final public function read(string $path): string
     {
         $format = $this->format;
 
@@ -147,7 +147,7 @@ class Rdf implements RdfAdapterInterface
         return $this->read($path);
     }
 
-    final public function listContents($directory = '', $recursive = false)
+    final public function listContents(string $path, bool $deep): iterable
     {
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
@@ -182,7 +182,7 @@ class Rdf implements RdfAdapterInterface
         }
     }
 
-    final public function fileSize($path)
+    final public function fileSize(string $path): FileAttributes
     {
         $format = $this->format;
 
@@ -195,7 +195,7 @@ class Rdf implements RdfAdapterInterface
         return $metadata;
     }
 
-    final public function mimeType($path)
+    final public function mimeType(string $path): FileAttributes
     {
         $format = $this->resetFormat();
 
@@ -218,12 +218,12 @@ class Rdf implements RdfAdapterInterface
         return $metadata;
     }
 
-    final public function lastModified($path)
+    final public function lastModified(string $path): FileAttributes
     {
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
 
-    final public function visibility($path)
+    final public function visibility(string $path): FileAttributes
     {
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
