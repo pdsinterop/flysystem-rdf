@@ -4,7 +4,7 @@ namespace Pdsinterop\Rdf\Flysystem\Adapter;
 
 use ArgumentCountError;
 use EasyRdf\Graph as Graph;
-use League\Flysystem\AdapterInterface;
+use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\Config;
 use Pdsinterop\Rdf\Enum\Format;
 use Pdsinterop\Rdf\Flysystem\Exception;
@@ -30,7 +30,7 @@ class RdfTest extends TestCase
     private const MOCK_PATH = '/mock/path';
     private const MOCK_URL = 'mock url';
 
-    /** @var AdapterInterface|MockObject */
+    /** @var FilesystemAdapter|MockObject */
     private $mockAdapter;
     /** @var FormatsInterface|MockObject */
     private $mockFormats;
@@ -113,20 +113,18 @@ class RdfTest extends TestCase
 
     /**
      * @covers ::copy
-     * @covers ::createDir
+     * @covers ::createDirectory
      * @covers ::delete
-     * @covers ::getSize
-     * @covers ::deleteDir
+     * @covers ::fileSize
+     * @covers ::deleteDirectory
      * @covers ::getMetadata
-     * @covers ::getTimestamp
-     * @covers ::getVisibility
+     * @covers ::lastModified
+     * @covers ::visibility
      * @covers ::listContents
      * @covers ::read
      * @covers ::readStream
-     * @covers ::rename
+     * @covers ::move
      * @covers ::setVisibility
-     * @covers ::update
-     * @covers ::updateStream
      * @covers ::write
      * @covers ::writeStream
      *
@@ -217,7 +215,7 @@ class RdfTest extends TestCase
     /**
      * @covers ::getMimeType
      * @covers ::getSize
-     * @covers ::has
+     * @covers ::fileExists
      * @covers ::read
      * @covers ::readStream
      *
