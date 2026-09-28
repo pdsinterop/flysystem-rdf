@@ -142,7 +142,7 @@ class RdfTest extends TestCase
 
         if ($method === 'read' || $method === 'readStream') {
             $adapterMethod = 'read';
-            $expected = ['contents' => $expected];
+            $expected = self::MOCK_CONTENTS;
         } elseif ($method === 'getMetadata' || $method === 'getMimetype') {
             $count = 0;
             $expected = [];
@@ -155,7 +155,7 @@ class RdfTest extends TestCase
         if ($method === 'getMetadata' || $method === 'read' || $method === 'readStream') {
             $this->mockAdapter
                 ->method('read')
-                ->willReturn(['contents' => self::MOCK_CONTENTS])
+                ->willReturn(self::MOCK_CONTENTS)
             ;
         }
 
