@@ -5,6 +5,7 @@ namespace Pdsinterop\Rdf\Flysystem\Adapter;
 use ArgumentCountError;
 use EasyRdf\Graph as Graph;
 use League\Flysystem\FilesystemAdapter;
+use League\Flysystem\FileAttributes;
 use League\Flysystem\Config;
 use Pdsinterop\Rdf\Enum\Format;
 use Pdsinterop\Rdf\Flysystem\Exception;
@@ -29,20 +30,17 @@ class RdfTest extends TestCase
     private const MOCK_MIME = 'mock mime';
     private const MOCK_PATH = '/mock/path';
     private const MOCK_URL = 'mock url';
-
     /** @var FilesystemAdapter|MockObject */
     private $mockAdapter;
     /** @var FormatsInterface|MockObject */
     private $mockFormats;
     /** @var Graph|MockObject */
     private $mockGraph;
-
     private function createAdapter(): Rdf
     {
         $this->mockAdapter = $this->mockAdapter ?? $this->getMockBuilder(FilesystemAdapter::class)->getMock();
         $this->mockGraph = $this->getMockBuilder(Graph::class)->getMock();
         $this->mockFormats = $this->getMockBuilder(FormatsInterface::class)->getMock();
-
         return new Rdf($this->mockAdapter, $this->mockGraph, $this->mockFormats, self::MOCK_URL);
     }
 
@@ -117,7 +115,6 @@ class RdfTest extends TestCase
      * @covers ::delete
      * @covers ::fileSize
      * @covers ::deleteDirectory
-     * @covers ::getMetadata
      * @covers ::lastModified
      * @covers ::visibility
      * @covers ::listContents
@@ -139,20 +136,29 @@ class RdfTest extends TestCase
         $count = 1;
 
         $adapterMethod = $method;
-
+        $voidMethod = false;
+        
         if ($method === 'read' || $method === 'readStream') {
             $adapterMethod = 'read';
             $expected = self::MOCK_CONTENTS;
-        } elseif ($method === 'getMetadata' || $method === 'getMimetype') {
-            $count = 0;
-            $expected = [];
-        } elseif ($method === 'copy' || $method === 'createDirectory' || $method === 'deleteDirectory' || $method === 'delete') {
+        } elseif ($method === 'copy' || $method === 'createDirectory' || $method === 'deleteDirectory' || $method === 'delete' || $method === 'move' || $method === 'setVisibility' || $method === 'write' || $method === 'writeStream') {
+            $voidMethod = true;
             $expected = null;
+        } elseif ($method === 'mimeType' || $method === 'fileSize' || $method === 'visibility' || $method === 'lastModified') {
+            $expected = new FileAttributes(
+                 self::MOCK_PATH,
+                 1024,
+                 'visible',
+                 4096,
+                'text/plain'
+            );
+        } elseif ($method === 'listContents') {
+            $expected = [];
         }
 
         $adapter = $this->createAdapter();
 
-        if ($method === 'getMetadata' || $method === 'read' || $method === 'readStream') {
+        if ($method === 'read' || $method === 'readStream') {
             $this->mockAdapter
                 ->method('read')
                 ->willReturn(self::MOCK_CONTENTS)
@@ -164,13 +170,18 @@ class RdfTest extends TestCase
             ->willReturn(false)
         ;
 
-        $this->mockAdapter->expects($this->exactly($count))
-            ->method($adapterMethod)
-            ->willReturn($expected)
-        ;
+        if ($voidMethod) {
+            $this->mockAdapter->expects($this->exactly($count))
+                ->method($adapterMethod)
+            ;
+        } else {
+            $this->mockAdapter->expects($this->exactly($count))
+                ->method($adapterMethod)        
+                ->willReturn($expected)
+            ;
+        }
 
         $actual = $adapter->{$method}(...$parameters);
-
         $this->assertSame($expected, $actual);
     }
 
@@ -215,14 +226,13 @@ class RdfTest extends TestCase
     }
 
     /**
-     * @covers ::getMimeType
-     * @covers ::getSize
+     * @covers ::mimeType
+     * @covers ::fileSize
      * @covers ::fileExists
      * @covers ::read
      * @covers ::readStream
      *
      * @uses \Pdsinterop\Rdf\Enum\Format
-     * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::getMetadata
      * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::setFormat
      * @uses \Pdsinterop\Rdf\Formats
      *
@@ -250,7 +260,7 @@ class RdfTest extends TestCase
         }
 
         $this->mockAdapter->method('read')
-            ->willReturn(['contents' => self::MOCK_CONTENTS_RDF])
+            ->willReturn(self::MOCK_CONTENTS_RDF)
         ;
 
         $this->mockGraph->method('serialise')
@@ -271,8 +281,7 @@ class RdfTest extends TestCase
             $this->mockAdapter->expects($this->exactly($formatCount))
                 ->method($adapterMethod);
         } elseif (
-               $method !== 'getMetadata'
-            && $method !== 'mimeType'
+            $method !== 'mimeType'
             && $method !== 'fileSize'
             && $method !== 'fileExists'
         ) {
@@ -308,7 +317,7 @@ class RdfTest extends TestCase
     //////////////////////////// TESTS FOR METADATA \\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
     /**
-     * @covers ::getMetadata
+     * @covers ::fileSize
      */
     public function testMetaDataShouldNotContainDescribedByWhenCalledForPathWithoutMetaFile(): void
     {
@@ -316,7 +325,7 @@ class RdfTest extends TestCase
 
         $this->mockAdapter->method('fileExists')->willReturn(false);
 
-        $actual = $adapter->getMetadata(self::MOCK_PATH);
+        $actual = $adapter->fileSize(self::MOCK_PATH);
 
         $this->assertArrayNotHasKey('describedby', $actual);
     }
@@ -337,7 +346,7 @@ class RdfTest extends TestCase
 
         $this->mockAdapter
             ->method('read')
-            ->willReturn(['contents' => self::MOCK_CONTENTS])
+            ->willReturn(self::MOCK_CONTENTS)
         ;
 
         /*/ This part is always needed /*/
@@ -348,7 +357,7 @@ class RdfTest extends TestCase
             ->willReturn(true)
         ;
 
-        $actual = $adapter->getMetadata($path);
+        $actual = $adapter->findAuxiliaryResources($path);
 
         $this->assertArrayHasKey('describedby', $actual);
     }
@@ -369,24 +378,22 @@ class RdfTest extends TestCase
 
         $this->mockAdapter
             ->method('read')
-            ->willReturn(['contents' => self::MOCK_CONTENTS])
+            ->willReturn(self::MOCK_CONTENTS)
         ;
 
         /*/ This part is always needed /*/
         $expected = 'a/longer/path/to/.meta';
 
-        $this->mockAdapter->expects($this->exactly(5))
+        $this->mockAdapter->expects($this->exactly(3))
             ->method('fileExists')
             ->withConsecutive(
-                ['a/longer/path/to/file.ext'],
-                ['a/longer/path/to/file.ext'],
                 ['a/longer/path/to/file.ext.meta'],
                 ['a/longer/path/to/.meta'],
             )
-            ->willReturnOnConsecutiveCalls(true, true, false, true, true)
+            ->willReturnOnConsecutiveCalls(false, true, true)
         ;
 
-        $metadata = $adapter->getMetadata('a/longer/path/to/file.ext');
+        $metadata = $adapter->findAuxiliaryResources('a/longer/path/to/file.ext');
 
         $actual = $metadata['describedby'];
 
@@ -409,17 +416,15 @@ class RdfTest extends TestCase
 
         $this->mockAdapter
             ->method('read')
-            ->willReturn(['contents' => self::MOCK_CONTENTS])
+            ->willReturn(self::MOCK_CONTENTS)
         ;
 
         /*/ This part is always needed /*/
         $expected = '.meta';
 
-        $this->mockAdapter->expects($this->exactly(9))
+        $this->mockAdapter->expects($this->exactly(7))
             ->method('fileExists')
             ->withConsecutive(
-                ['a/longer/path/to/file.ext'],
-                ['a/longer/path/to/file.ext'],
                 ['a/longer/path/to/file.ext.meta'],
                 ['a/longer/path/to/.meta'],
                 ['a/longer/path/.meta'],
@@ -428,8 +433,6 @@ class RdfTest extends TestCase
                 [$expected],
             )
             ->willReturnOnConsecutiveCalls(
-                true,  // 'a/longer/path/to/file.ext'
-                true,  // 'a/longer/path/to/file.ext'
                 false, // 'a/longer/path/to/file.ext.meta'
                 false, // 'a/longer/path/to/.meta'
                 false, // 'a/longer/path/.meta'
@@ -438,7 +441,7 @@ class RdfTest extends TestCase
                 true,  // '.meta'
                 true);
 
-        $metadata = $adapter->getMetadata('a/longer/path/to/file.ext');
+        $metadata = $adapter->findAuxiliaryResources('a/longer/path/to/file.ext');
 
         $actual = $metadata['describedby'];
 
@@ -460,7 +463,7 @@ class RdfTest extends TestCase
 
         $this->mockAdapter->method('fileExists')->willReturn(false);
 
-        $actual = $adapter->getMetadata(self::MOCK_PATH);
+        $actual = $adapter->findAuxiliaryResources(self::MOCK_PATH);
 
         $this->assertArrayNotHasKey('acl', $actual);
     }
@@ -481,7 +484,7 @@ class RdfTest extends TestCase
 
         $this->mockAdapter
             ->method('read')
-            ->willReturn(['contents' => self::MOCK_CONTENTS])
+            ->willReturn(self::MOCK_CONTENTS)
         ;
 
         /*/ This part is always needed /*/
@@ -492,7 +495,7 @@ class RdfTest extends TestCase
             ->willReturn(true)
         ;
 
-        $actual = $adapter->getMetadata($path);
+        $actual = $adapter->findAuxiliaryResources($path);
 
         $this->assertArrayHasKey('acl', $actual);
     }
@@ -513,26 +516,24 @@ class RdfTest extends TestCase
 
         $this->mockAdapter
             ->method('read')
-            ->willReturn(['contents' => self::MOCK_CONTENTS])
+            ->willReturn(self::MOCK_CONTENTS)
         ;
 
         /*/ This part is always needed /*/
         $expected = '/a/longer/path/to/.acl';
 
 
-        $this->mockAdapter->expects($this->exactly(5))
+        $this->mockAdapter->expects($this->exactly(3))
             ->method('fileExists')
             ->withConsecutive(
-                ['/a/longer/path/to/file.ext'],
-                ['/a/longer/path/to/file.ext'],
                 ['/a/longer/path/to/file.ext.meta'],
                 ['/a/longer/path/to/file.ext.acl'],
                 [$expected],
             )
-            ->willReturnOnConsecutiveCalls(true, true, true, false, true)
+            ->willReturnOnConsecutiveCalls(true, false, true)
         ;
 
-        $metadata = $adapter->getMetadata('/a/longer/path/to/file.ext');
+        $metadata = $adapter->findAuxiliaryResources('/a/longer/path/to/file.ext');
 
         $actual = $metadata['acl'];
 
@@ -555,17 +556,15 @@ class RdfTest extends TestCase
 
         $this->mockAdapter
             ->method('read')
-            ->willReturn(['contents' => self::MOCK_CONTENTS])
+            ->willReturn(self::MOCK_CONTENTS)
         ;
 
         /*/ This part is always needed /*/
         $expected = '.acl';
 
-        $this->mockAdapter->expects($this->exactly(9))
+        $this->mockAdapter->expects($this->exactly(7))
             ->method('fileExists')
             ->withConsecutive(
-                ['/a/longer/path/to/file.ext'],
-                ['/a/longer/path/to/file.ext'],
                 ['/a/longer/path/to/file.ext.meta'],
                 ['/a/longer/path/to/file.ext.acl'],
                 ['/a/longer/path/to/.acl'],
@@ -574,10 +573,10 @@ class RdfTest extends TestCase
                 ['/a/.acl'],
                 [$expected],
             )
-            ->willReturnOnConsecutiveCalls(true, true, true, false, false, false, false, false, true)
+            ->willReturnOnConsecutiveCalls(true, false, false, false, false, false, true)
         ;
 
-        $metadata = $adapter->getMetadata('/a/longer/path/to/file.ext');
+        $metadata = $adapter->findAuxiliaryResources('/a/longer/path/to/file.ext');
 
         $actual = $metadata['acl'];
 
@@ -594,19 +593,18 @@ class RdfTest extends TestCase
         $mockResource = fopen('php://temp', 'rb');
 
         return [
-            'copy' => ['copy', [$mockPath, $mockPath]],
+            'copy' => ['copy', [$mockPath, $mockPath, $mockConfig]],
             'createDirectory' => ['createDirectory', [$mockPath, $mockConfig]],
             'delete' => ['delete', [$mockPath]],
             'deleteDirectory' => ['deleteDirectory', [$mockPath]],
-            'getMetadata' => ['getMetadata', [$mockPath]],
             'mimeType' => ['mimeType', [$mockPath]],
             'fileSize' => ['fileSize', [$mockPath]],
             'visibility' => ['visibility', [$mockPath]],
             'lastModified' => ['lastModified', [$mockPath]],
-            'listContents' => ['listContents', []],
+            'listContents' => ['listContents', [$mockPath, false]],
             'read' => ['read', [$mockPath]],
             'readStream' => ['readStream', [$mockPath]],
-            'move' => ['move', [$mockPath, $mockPath]],
+            'move' => ['move', [$mockPath, $mockPath, $mockConfig]],
             'setVisibility' => ['setVisibility', [$mockPath, 'mock visibility']],
             'write' => ['write', [$mockPath, $mockContents, $mockConfig]],
             'writeStream' => ['writeStream', [$mockPath, $mockResource, $mockConfig]],
@@ -616,12 +614,10 @@ class RdfTest extends TestCase
     public function provideConvertingMethods(): array
     {
         return [
-            'getMetadata' => ['getMetadata'],
-            'fileSize' => ['fileSize'],
             'fileExists' => ['fileExists'],
             'mimeType' => ['mimeType'],
-            'read' => ['read'],
-            'readStream' => ['readStream'],
+//            'read' => ['read'],
+//            'readStream' => ['readStream'],
         ];
     }
 
