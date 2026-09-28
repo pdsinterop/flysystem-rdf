@@ -69,7 +69,7 @@ class Rdf implements RdfAdapterInterface
         $this->url = $url;
     }
 
-    final public function write($path, $contents, Config $config)
+    final public function write(string $path, $contents, Config $config)
     {
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
@@ -109,17 +109,17 @@ class Rdf implements RdfAdapterInterface
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
 
-    final public function fileExists($path)
+    final public function fileExists(string $path)
     {
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
 
-    final public function directoryExists($path)
+    final public function directoryExists(string $path)
     {
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
 
-    final public function read($path)
+    final public function read(string $path)
     {
         $format = $this->format;
 
@@ -141,7 +141,7 @@ class Rdf implements RdfAdapterInterface
         return $metaData;
     }
 
-    final public function readStream($path)
+    final public function readStream(string $path)
     {
         // @TODO: Change to stream?
         return $this->read($path);
