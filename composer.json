@@ -8,14 +8,14 @@
     "bin-dir": "./bin",
     "sort-packages": true
   },
-  "description": "Flysystem plugin to transform RDF data between various serialization formats.",
+  "description": "Flysystem 3 adapter to transform RDF data between various serialization formats.",
   "license": "MIT",
   "name": "pdsinterop/flysystem-rdf",
   "require": {
     "php": "^8.0",
     "ext-mbstring": "*",
     "sweetrdf/easyrdf": "^1.1",
-    "league/flysystem": "^1.0",
+    "league/flysystem": "^3.0",
     "ml/json-ld": "^1.2"
   },
   "require-dev": {

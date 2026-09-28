@@ -79,17 +79,7 @@ class Rdf implements RdfAdapterInterface
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
 
-    final public function update($path, $contents, Config $config)
-    {
-        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
-    }
-
-    final public function updateStream($path, $resource, Config $config)
-    {
-        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
-    }
-
-    final public function rename($path, $newpath)
+    final public function move($path, $newpath)
     {
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
@@ -104,12 +94,12 @@ class Rdf implements RdfAdapterInterface
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
 
-    final public function deleteDir($dirname)
+    final public function deleteDirectory($dirname)
     {
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
 
-    final public function createDir($dirname, Config $config)
+    final public function createDirectory($dirname, Config $config)
     {
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
@@ -119,15 +109,14 @@ class Rdf implements RdfAdapterInterface
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
 
-    final public function has($path)
+    final public function fileExists($path)
     {
-        $metadata = call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+    }
 
-        if ($this->format !== '' || $metadata === false) {
-            $metadata = $this->getMetadata($path);
-        }
-
-        return $metadata;
+    final public function directoryExists($path)
+    {
+        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
 
     final public function read($path)
@@ -193,7 +182,7 @@ class Rdf implements RdfAdapterInterface
         }
     }
 
-    final public function getSize($path)
+    final public function fileSize($path)
     {
         $format = $this->format;
 
@@ -206,7 +195,7 @@ class Rdf implements RdfAdapterInterface
         return $metadata;
     }
 
-    final public function getMimeType($path)
+    final public function mimeType($path)
     {
         $format = $this->resetFormat();
 
@@ -229,12 +218,12 @@ class Rdf implements RdfAdapterInterface
         return $metadata;
     }
 
-    final public function getTimestamp($path)
+    final public function lastModified($path)
     {
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
 
-    final public function getVisibility($path)
+    final public function visibility($path)
     {
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
