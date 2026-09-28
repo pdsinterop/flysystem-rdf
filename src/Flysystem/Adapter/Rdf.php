@@ -6,6 +6,7 @@ use EasyRdf\Exception as RdfException;
 use EasyRdf\Graph as Graph;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
+use League\Flysystem\FileAttributes;
 use ML\JsonLD\JsonLD;
 use Pdsinterop\Rdf\Enum\Format;
 use Pdsinterop\Rdf\Flysystem\Exception;
