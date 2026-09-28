@@ -3,10 +3,11 @@
 namespace Pdsinterop\Rdf\Flysystem\Plugin;
 
 use EasyRdf\Graph as Graph;
-use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
 use Pdsinterop\Rdf\Enum\Format;
 use PHPUnit\Framework\TestCase;
+use Pdsinterop\Rdf\Flysystem\Adapter\Rdf as RdfAdapter;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 
 class FilesystemTest extends TestCase
 {
@@ -22,11 +23,22 @@ class FilesystemTest extends TestCase
      */
     public function test_($format, $expected): void
     {
-        $filesystem = new Filesystem(new Local(__DIR__ . '/../fixtures/'));
-        $filesystem->addPlugin(new ReadRdf(new Graph()));
+        $formats = new \Pdsinterop\Rdf\Formats();
+        $localAdapter = new LocalFilesystemAdapter(__DIR__ . '/../fixtures/');
 
+        // Create the RDF Adapter
+        $rdfAdapter = new RdfAdapter(
+            $localAdapter,
+            new \EasyRdf\Graph(),
+            $formats,
+            'server'
+        );
+
+        $filesystem = new Filesystem($rdfAdapter);
+
+        $rdfAdapter->setFormat($format);
         /** @noinspection PhpUndefinedMethodInspection */
-        $actual = $filesystem->readRdf('foaf.rdf', $format, 'server');
+        $actual = $filesystem->read('foaf.rdf');
 
         self::assertEquals($expected, $actual);
     }
