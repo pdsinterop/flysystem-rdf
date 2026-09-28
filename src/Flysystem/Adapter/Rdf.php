@@ -4,7 +4,7 @@ namespace Pdsinterop\Rdf\Flysystem\Adapter;
 
 use EasyRdf\Exception as RdfException;
 use EasyRdf\Graph as Graph;
-use League\Flysystem\AdapterInterface;
+use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\Config;
 use League\Flysystem\FileAttributes;
 use ML\JsonLD\JsonLD;
@@ -22,7 +22,7 @@ class Rdf implements RdfAdapterInterface
     public const ERROR_UNSUPPORTED_FORMAT = 'Given format "%s" is not supported';
     public const ERROR_COULD_NOT_CONVERT = 'Could not convert file "%s" to format "%s": %s';
 
-    /** @var AdapterInterface */
+    /** @var FilesystemAdapter */
     private $adapter;
     /** @var string */
     private $format = '';
@@ -62,7 +62,7 @@ class Rdf implements RdfAdapterInterface
     //////////////////////////////// PUBLIC API \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
     // @FIXME: Add JsonLD as dependency and use static calls to object instance instead of using static calls to class
-    final public function __construct(AdapterInterface $adapter, Graph $graph, FormatsInterface $formats, string $url)
+    final public function __construct(FilesystemAdapter $adapter, Graph $graph, FormatsInterface $formats, string $url)
     {
         $this->adapter = $adapter;
         $this->formats = $formats;
