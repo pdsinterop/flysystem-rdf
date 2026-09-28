@@ -160,7 +160,7 @@ class RdfTest extends TestCase
         }
 
         $this->mockAdapter
-            ->method('has')
+            ->method('fileExists')
             ->willReturn(false)
         ;
 
@@ -262,19 +262,19 @@ class RdfTest extends TestCase
         ;
 
         /*/ This inner adapter method should *never* be called when working with converted (meta)data /*/
-        $this->mockAdapter->expects($this->never())->method('getSize');
+        $this->mockAdapter->expects($this->never())->method('fileSize');
 
         /*/ Lets pretend the file exists /*/
-        $this->mockAdapter->method('has')->willReturn(true);
+        $this->mockAdapter->method('fileExists')->willReturn(true);
 
         if ($method === 'read' || $method === 'readStream') {
             $this->mockAdapter->expects($this->exactly($formatCount))
                 ->method($adapterMethod);
         } elseif (
                $method !== 'getMetadata'
-            && $method !== 'getMimeType'
-            && $method !== 'getSize'
-            && $method !== 'has'
+            && $method !== 'mimeType'
+            && $method !== 'fileSize'
+            && $method !== 'fileExists'
         ) {
             $this->fail('Do not know how to test for ' . $method);
         }
@@ -314,7 +314,7 @@ class RdfTest extends TestCase
     {
         $adapter = $this->createAdapter();
 
-        $this->mockAdapter->method('has')->willReturn(false);
+        $this->mockAdapter->method('fileExists')->willReturn(false);
 
         $actual = $adapter->getMetadata(self::MOCK_PATH);
 
@@ -344,7 +344,7 @@ class RdfTest extends TestCase
         $path = self::MOCK_PATH;
 
         $this->mockAdapter
-            ->method('has')
+            ->method('fileExists')
             ->willReturn(true)
         ;
 
@@ -376,7 +376,7 @@ class RdfTest extends TestCase
         $expected = 'a/longer/path/to/.meta';
 
         $this->mockAdapter->expects($this->exactly(5))
-            ->method('has')
+            ->method('fileExists')
             ->withConsecutive(
                 ['a/longer/path/to/file.ext'],
                 ['a/longer/path/to/file.ext'],
@@ -416,7 +416,7 @@ class RdfTest extends TestCase
         $expected = '.meta';
 
         $this->mockAdapter->expects($this->exactly(9))
-            ->method('has')
+            ->method('fileExists')
             ->withConsecutive(
                 ['a/longer/path/to/file.ext'],
                 ['a/longer/path/to/file.ext'],
@@ -445,7 +445,7 @@ class RdfTest extends TestCase
         $this->assertEquals($expected, $actual);
     }
 
-    // @TODO: Add test to prove `getMetadata` is not called for a `has` lookup
+    // @TODO: Add test to prove `getMetadata` is not called for a `fileExists` lookup
 
     // @TODO: Add test to document behaviour for metadata calls for $paths with nd without leading slash `/`
 
@@ -458,7 +458,7 @@ class RdfTest extends TestCase
     {
         $adapter = $this->createAdapter();
 
-        $this->mockAdapter->method('has')->willReturn(false);
+        $this->mockAdapter->method('fileExists')->willReturn(false);
 
         $actual = $adapter->getMetadata(self::MOCK_PATH);
 
@@ -488,7 +488,7 @@ class RdfTest extends TestCase
         $path = self::MOCK_PATH;
 
         $this->mockAdapter
-            ->method('has')
+            ->method('fileExists')
             ->willReturn(true)
         ;
 
@@ -521,7 +521,7 @@ class RdfTest extends TestCase
 
 
         $this->mockAdapter->expects($this->exactly(5))
-            ->method('has')
+            ->method('fileExists')
             ->withConsecutive(
                 ['/a/longer/path/to/file.ext'],
                 ['/a/longer/path/to/file.ext'],
@@ -562,7 +562,7 @@ class RdfTest extends TestCase
         $expected = '.acl';
 
         $this->mockAdapter->expects($this->exactly(9))
-            ->method('has')
+            ->method('fileExists')
             ->withConsecutive(
                 ['/a/longer/path/to/file.ext'],
                 ['/a/longer/path/to/file.ext'],
@@ -595,21 +595,19 @@ class RdfTest extends TestCase
 
         return [
             'copy' => ['copy', [$mockPath, $mockPath]],
-            'createDir' => ['createDir', [$mockPath, $mockConfig]],
+            'createDirectory' => ['createDirectory', [$mockPath, $mockConfig]],
             'delete' => ['delete', [$mockPath]],
-            'deleteDir' => ['deleteDir', [$mockPath]],
+            'deleteDirectory' => ['deleteDirectory', [$mockPath]],
             'getMetadata' => ['getMetadata', [$mockPath]],
-            'getMimetype' => ['getMimetype', [$mockPath]],
-            'getSize' => ['getSize', [$mockPath]],
-            'getVisibility' => ['getVisibility', [$mockPath]],
-            'getTimestamp' => ['getTimestamp', [$mockPath]],
+            'mimeType' => ['mimeType', [$mockPath]],
+            'fileSize' => ['fileSize', [$mockPath]],
+            'visibility' => ['visibility', [$mockPath]],
+            'lastModified' => ['lastModified', [$mockPath]],
             'listContents' => ['listContents', []],
             'read' => ['read', [$mockPath]],
             'readStream' => ['readStream', [$mockPath]],
-            'rename' => ['rename', [$mockPath, $mockPath]],
+            'move' => ['move', [$mockPath, $mockPath]],
             'setVisibility' => ['setVisibility', [$mockPath, 'mock visibility']],
-            'update' => ['update', [$mockPath, $mockContents, $mockConfig]],
-            'updateStream' => ['updateStream', [$mockPath, $mockResource, $mockConfig]],
             'write' => ['write', [$mockPath, $mockContents, $mockConfig]],
             'writeStream' => ['writeStream', [$mockPath, $mockResource, $mockConfig]],
         ];
@@ -619,9 +617,9 @@ class RdfTest extends TestCase
     {
         return [
             'getMetadata' => ['getMetadata'],
-            'getSize' => ['getSize'],
-            'has' => ['has'],
-            'getMimeType' => ['getMimeType'],
+            'fileSize' => ['fileSize'],
+            'fileExists' => ['fileExists'],
+            'mimeType' => ['mimeType'],
             'read' => ['read'],
             'readStream' => ['readStream'],
         ];
