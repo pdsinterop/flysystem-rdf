@@ -126,7 +126,7 @@ class Rdf implements RdfAdapterInterface
 
         if ($format !== '') {
             $contents = $this->convertedContents($path, $format);
-
+            /*
             $metaData = [
                 'contents' => $contents,
                 'mimetype' => $this->formats->getMimeForFormat($format),
@@ -135,11 +135,12 @@ class Rdf implements RdfAdapterInterface
                 'type' => 'file',
             ];
             $metaData = array_merge($metaData, $this->findAuxiliaryResources($path));
+            */
         } else {
-            $metaData = $this->adapter->read($path);
+            $contents = $this->adapter->read($path);
         }
 
-        return $metaData;
+        return $contents;
     }
 
     final public function readStream(string $path)
@@ -165,24 +166,6 @@ class Rdf implements RdfAdapterInterface
 
     Should that be added here or in a separate Solid Metadata adapter?
 /*/
-    final public function getMetadata($path)
-    {
-        $metadata = [];
-
-        if ($this->adapter->has($path)) {
-            $metadata = $this->adapter->getMetadata($path) ?? [];
-	    $format = $this->format;
-
-            if ($format !== '') {
-                // @CHECKME: Does it make more sense to call `guessMimeType` or should `getMimeType` be called?
-                $metadata = array_merge($metadata, ['mimetype' => $this->guessMimeType($path)], $this->read($path));
-            }
-            return array_merge($metadata);
-        } else {
-            return $metadata;
-        }
-    }
-
     final public function fileSize(string $path): FileAttributes
     {
         $format = $this->format;
