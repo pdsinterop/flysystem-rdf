@@ -147,7 +147,7 @@ class RdfTest extends TestCase
             $count = 0;
             $expected = [];
         } elseif ($method === 'copy' || $method === 'createDirectory' || $method === 'deleteDirectory' || $method === 'delete') {
-            $expected = void;
+            $expected = null;
         }
 
         $adapter = $this->createAdapter();
