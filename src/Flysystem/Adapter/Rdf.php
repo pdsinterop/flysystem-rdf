@@ -190,7 +190,7 @@ class Rdf implements RdfAdapterInterface
         if ($format === '') {
             $metadata = call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
         } else {
-            $metadata = $this->getMetadata($path);
+            $metadata = $this->adapter->fileSize($path);
         }
 
         return $metadata;
@@ -205,8 +205,8 @@ class Rdf implements RdfAdapterInterface
         } else {
             $metadata = [];
 
-            if ($this->adapter->has($path)) {
-                $metadata = $this->adapter->getMimetype($path);
+            if ($this->adapter->fileExists($path)) {
+                $metadata = $this->adapter->mimeType($path);
             }
 
             $possibleMimeType = $this->guessMimeType($path, $metadata);
@@ -215,8 +215,8 @@ class Rdf implements RdfAdapterInterface
                 $metadata['mimetype'] = $possibleMimeType;
             }
         }
-
-        return $metadata;
+        $result = new FileAttributes($path, null, null, null, $metadata['mimetype']??null);
+        return $result;
     }
 
     final public function lastModified(string $path): FileAttributes
@@ -285,7 +285,7 @@ class Rdf implements RdfAdapterInterface
         return $contents;
     }
 
-    private function findAuxiliaryResources(string $path): array
+    public function findAuxiliaryResources(string $path): array
     {
         $metaFiles = [
             'describedby' => $this->findInPath($path, '.meta'),
@@ -302,7 +302,7 @@ class Rdf implements RdfAdapterInterface
 
         $subjectPath = $originalPath . $extension;
 
-        if ($this->adapter->has($subjectPath)) {
+        if ($this->adapter->fileExists($subjectPath)) {
             $subject = $subjectPath;
         } else {
             do {
@@ -310,14 +310,14 @@ class Rdf implements RdfAdapterInterface
 
                 if ($subjectPath === '.' || $subjectPath === '/') {
                     // We have reached the root of the file system
-                    if ($this->adapter->has($extension)) {
+                    if ($this->adapter->fileExists($extension)) {
                         $subject = $extension;
                     }
                     break;
                 } else {
                     $path = $subjectPath . '/' . $extension;
 
-                    if ($this->adapter->has($path)) {
+                    if ($this->adapter->fileExists($path)) {
                         $subject = $path;
                     }
                 }
@@ -337,7 +337,7 @@ class Rdf implements RdfAdapterInterface
     {
         $converted = $this->adapter->read($path);
 
-        return $converted['contents'];
+        return $converted;
     }
 
     private function guessMimeType(string $path, array $metadata = []): string
@@ -346,7 +346,7 @@ class Rdf implements RdfAdapterInterface
 
         if ($metadata === []) {
             $originalMetadata = [];
-            if ($this->adapter->has($path)) {
+            if ($this->adapter->fileExists($path)) {
                 $originalMetadata = $this->adapter->getMimetype($path);
             }
 
