@@ -380,7 +380,7 @@ class RdfTest extends TestCase
     }
 
     /**
-     * @covers ::getMetadata
+     * @covers ::getAttributes
      *
      * @uses \Pdsinterop\Rdf\Enum\Format
      * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::read
@@ -417,7 +417,7 @@ class RdfTest extends TestCase
     }
 
     /**
-     * @covers ::getMetadata
+     * @covers ::getAttributes
      *
      * @uses \Pdsinterop\Rdf\Enum\Format
      * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::read
@@ -465,14 +465,14 @@ class RdfTest extends TestCase
         $this->assertEquals($expected, $actual);
     }
 
-    // @TODO: Add test to prove `getMetadata` is not called for a `fileExists` lookup
+    // @TODO: Add test to prove `getAttributes` is not called for a `fileExists` lookup
 
     // @TODO: Add test to document behaviour for metadata calls for $paths with nd without leading slash `/`
 
     /////////////////////////////// TESTS FOR ACL \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
     /**
-     * @covers ::getMetadata
+     * @covers ::getAttributes
      */
     public function testMetaDataShouldNotContainAclWhenCalledForPathWithoutAclFile(): void
     {
@@ -486,7 +486,7 @@ class RdfTest extends TestCase
     }
 
     /**
-     * @covers ::getMetadata
+     * @covers ::getAttributes
      *
      * @uses \Pdsinterop\Rdf\Enum\Format
      * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::read
@@ -518,7 +518,7 @@ class RdfTest extends TestCase
     }
 
     /**
-     * @covers ::getMetadata
+     * @covers ::getAttributes
      *
      * @uses \Pdsinterop\Rdf\Enum\Format
      * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::read
@@ -558,7 +558,7 @@ class RdfTest extends TestCase
     }
 
     /**
-     * @covers ::getMetadata
+     * @covers ::getAttributes
      *
      * @uses \Pdsinterop\Rdf\Enum\Format
      * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::read
