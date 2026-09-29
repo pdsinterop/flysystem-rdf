@@ -123,24 +123,61 @@ class Rdf implements RdfAdapterInterface
     final public function read(string $path): string
     {
         $format = $this->format;
-
         if ($format !== '') {
             $contents = $this->convertedContents($path, $format);
-            /*
-            $metaData = [
-                'contents' => $contents,
-                'mimetype' => $this->formats->getMimeForFormat($format),
-                'path' => $path,
-                'size' => strlen($contents), // filesize in bytes,
-                'type' => 'file',
-            ];
-            $metaData = array_merge($metaData, $this->findAuxiliaryResources($path));
-            */
         } else {
             $contents = $this->adapter->read($path);
         }
 
         return $contents;
+    }
+
+    final public function getAttributes(string $path): FileAttributes
+    {
+        $auxiliaryResources = $this->findAuxiliaryResources($path);
+
+        $format = $this->format;
+
+        if ($format == '') {
+            $attributes = $this->adapter->fileSize($path); // expected to use getAttributes, but this returns the full set of metadata;
+            return new FileAttributes(
+                $path,
+                $attributes->fileSize(),
+                $attributes->visibility(),
+                $attributes->lastModified(),
+                $attributes->mimeType(),
+                $auxiliaryResources
+            );
+            return $attributes;
+        } else {
+            $mimetype = $this->formats->getMimeForFormat($this->format);
+            if ($this->adapter->fileExists($path)) {
+                $metadata = $this->adapter->mimeType($path);
+            }
+
+            $possibleMimeType = $this->guessMimeType($path, $metadata);
+
+            if ($possibleMimeType !== '') {
+                $mimetype = $possibleMimeType;
+            }
+
+            $contents = $this->read($path);
+            $metaData = [
+                'contents' => $contents,
+                'mimetype' => $mimetype,
+                'path' => $path,
+                'size' => strlen($contents), // filesize in bytes,
+            ];
+
+            return new FileAttributes(
+                $path,
+                $metaData['size'],
+                null,
+                null,
+                $metaData['mimetype'],
+                $auxiliaryResources
+            );
+        }
     }
 
     final public function readStream(string $path)
@@ -168,38 +205,20 @@ class Rdf implements RdfAdapterInterface
 /*/
     final public function fileSize(string $path): FileAttributes
     {
-        $format = $this->format;
-
-        if ($format === '') {
-            $metadata = call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+        if ($this->format === '') {
+            return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
         } else {
-            $metadata = $this->adapter->fileSize($path);
+            return $this->getAttributes($path);
         }
-
-        return $metadata;
     }
 
     final public function mimeType(string $path): FileAttributes
     {
-        $format = $this->resetFormat();
-
-        if ($format !== '') {
-            $metadata = ['mimetype' => $this->formats->getMimeForFormat($format)];
+        if ($this->format === '') {
+            return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
         } else {
-            $metadata = [];
-
-            if ($this->adapter->fileExists($path)) {
-                $metadata = $this->adapter->mimeType($path);
-            }
-
-            $possibleMimeType = $this->guessMimeType($path, $metadata);
-
-            if ($possibleMimeType !== '') {
-                $metadata['mimetype'] = $possibleMimeType;
-            }
+            return $this->getAttributes($path);
         }
-        $result = new FileAttributes($path, null, null, null, $metadata['mimetype']??null);
-        return $result;
     }
 
     final public function lastModified(string $path): FileAttributes
@@ -323,29 +342,16 @@ class Rdf implements RdfAdapterInterface
         return $converted;
     }
 
-    private function guessMimeType(string $path, array $metadata = []): string
+    private function guessMimeType(string $path, FileAttributes $attributes): string
     {
         $mimetype = '';
-
-        if ($metadata === []) {
-            $originalMetadata = [];
-            if ($this->adapter->fileExists($path)) {
-                $originalMetadata = $this->adapter->getMimetype($path);
-            }
-
-            if (isset($originalMetadata['mimetype'])) {
-                $metadata = $originalMetadata;
-            }
-        }
-
         $extension = $this->getExtension($path);
-
         $possibleMime = $this->formats->getMimeForExtension($extension);
 
         if ($possibleMime !== ''
             && (
-                ! isset($metadata['mimetype'])
-                || $metadata['mimetype'] === 'text/plain'
+                ! $attributes->mimeType()
+                || $attributes->mimeType() === 'text/plain'
             )
         ) {
             $mimetype = $possibleMime;

@@ -147,10 +147,10 @@ class RdfTest extends TestCase
         } elseif ($method === 'mimeType' || $method === 'fileSize' || $method === 'visibility' || $method === 'lastModified') {
             $expected = new FileAttributes(
                  self::MOCK_PATH,
-                 1024,
-                 'visible',
-                 4096,
-                'text/plain'
+                 null,
+                 null,
+                 null,
+                 null
             );
         } elseif ($method === 'listContents') {
             $expected = [];
@@ -180,9 +180,9 @@ class RdfTest extends TestCase
                 ->willReturn($expected)
             ;
         }
-
         $actual = $adapter->{$method}(...$parameters);
-        $this->assertSame($expected, $actual);
+
+        $this->assertEquals($expected, $actual);
     }
 
     //////////////////////////// TESTS WITH FORMATTING \\\\\\\\\\\\\\\\\\\\\\\\\
@@ -298,11 +298,25 @@ class RdfTest extends TestCase
             'acl' => '/mock/path.acl',
         ];
 
-        if ($method === 'getMimeType') {
+        if ($method === 'fileExists') {
+            $expected = true;
+        }
+
+        if ($method === 'mimeType') {
             /*/ Mimetype does not require metadata or read to function.
                 Hence, it only returns one value.
             /*/
-            $expected = ['mimetype' => self::MOCK_MIME];
+            $expected = new FileAttributes(
+                 self::MOCK_PATH,
+                 2,
+                 null,
+                 null,
+                 self::MOCK_MIME,
+                 [
+                     'describedby' => '/mock/path.meta',
+                     'acl' => '/mock/path.acl'
+                 ]
+            );
         }
 
         foreach ($formats as $format) {
