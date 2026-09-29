@@ -59,6 +59,16 @@ class Rdf implements RdfAdapterInterface
 		return $this->format;
 	}
 
+    final public function setUrl(string $url): void
+    {
+        $this->url = $url;
+    }
+
+    final public function getUrl(): string
+    {
+        return $this->url;
+    }
+
     //////////////////////////////// PUBLIC API \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
     // @FIXME: Add JsonLD as dependency and use static calls to object instance instead of using static calls to class
