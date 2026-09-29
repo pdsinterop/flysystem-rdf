@@ -148,7 +148,6 @@ class Rdf implements RdfAdapterInterface
                 $attributes->mimeType(),
                 $auxiliaryResources
             );
-            return $attributes;
         } else {
             $mimetype = $this->formats->getMimeForFormat($this->format);
             if ($this->adapter->fileExists($path)) {
