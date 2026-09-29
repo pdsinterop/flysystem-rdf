@@ -381,6 +381,7 @@ class RdfTest extends TestCase
 
     /**
      * @covers ::getAttributes
+     * @covers ::findAuxiliaryResources
      *
      * @uses \Pdsinterop\Rdf\Enum\Format
      * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::read
@@ -418,6 +419,7 @@ class RdfTest extends TestCase
 
     /**
      * @covers ::getAttributes
+     * @covers ::findAuxiliaryResources
      *
      * @uses \Pdsinterop\Rdf\Enum\Format
      * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::read
@@ -473,6 +475,7 @@ class RdfTest extends TestCase
 
     /**
      * @covers ::getAttributes
+     * @covers ::findAuxiliaryResources
      */
     public function testMetaDataShouldNotContainAclWhenCalledForPathWithoutAclFile(): void
     {
@@ -487,6 +490,7 @@ class RdfTest extends TestCase
 
     /**
      * @covers ::getAttributes
+     * @covers ::findAuxiliaryResources
      *
      * @uses \Pdsinterop\Rdf\Enum\Format
      * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::read
@@ -519,6 +523,7 @@ class RdfTest extends TestCase
 
     /**
      * @covers ::getAttributes
+     * @covers ::findAuxiliaryResources
      *
      * @uses \Pdsinterop\Rdf\Enum\Format
      * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::read
@@ -559,6 +564,7 @@ class RdfTest extends TestCase
 
     /**
      * @covers ::getAttributes
+     * @covers ::findAuxiliaryResources
      *
      * @uses \Pdsinterop\Rdf\Enum\Format
      * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::read
