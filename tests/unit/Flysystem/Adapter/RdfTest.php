@@ -125,7 +125,7 @@ class RdfTest extends TestCase
      * @covers ::write
      * @covers ::writeStream
      *
-     * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::getMimeType
+     * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::mimeType
      *
      * @dataProvider provideProxyMethods
      */
@@ -345,7 +345,7 @@ class RdfTest extends TestCase
     }
 
     /**
-     * @covers ::getMetadata
+     * @covers ::getAttributes
      *
      * @uses \Pdsinterop\Rdf\Enum\Format
      * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::read
@@ -371,9 +371,9 @@ class RdfTest extends TestCase
             ->willReturn(true)
         ;
 
-        $actual = $adapter->findAuxiliaryResources($path);
+        $actual = $adapter->getAttributes($path);
 
-        $this->assertArrayHasKey('describedby', $actual);
+        $this->assertArrayHasKey('describedby', $actual->extraMetaData());
     }
 
     /**
@@ -398,18 +398,17 @@ class RdfTest extends TestCase
         /*/ This part is always needed /*/
         $expected = 'a/longer/path/to/.meta';
 
-        $this->mockAdapter->expects($this->exactly(3))
+        $this->mockAdapter->expects($this->exactly(4))
             ->method('fileExists')
             ->withConsecutive(
                 ['a/longer/path/to/file.ext.meta'],
                 ['a/longer/path/to/.meta'],
             )
-            ->willReturnOnConsecutiveCalls(false, true, true)
+            ->willReturnOnConsecutiveCalls(false, true, true, true)
         ;
 
-        $metadata = $adapter->findAuxiliaryResources('a/longer/path/to/file.ext');
-
-        $actual = $metadata['describedby'];
+        $metadata = $adapter->getAttributes('a/longer/path/to/file.ext');
+        $actual = $metadata->extraMetaData()['describedby'];
 
         $this->assertEquals($expected, $actual);
     }
@@ -436,7 +435,7 @@ class RdfTest extends TestCase
         /*/ This part is always needed /*/
         $expected = '.meta';
 
-        $this->mockAdapter->expects($this->exactly(7))
+        $this->mockAdapter->expects($this->exactly(8))
             ->method('fileExists')
             ->withConsecutive(
                 ['a/longer/path/to/file.ext.meta'],
@@ -453,11 +452,12 @@ class RdfTest extends TestCase
                 false, // 'a/longer/.meta'
                 false, // 'a/.meta'
                 true,  // '.meta'
+                true,
                 true);
 
-        $metadata = $adapter->findAuxiliaryResources('a/longer/path/to/file.ext');
+        $metadata = $adapter->getAttributes('a/longer/path/to/file.ext');
 
-        $actual = $metadata['describedby'];
+        $actual = $metadata->extraMetaData()['describedby'];
 
         $this->assertEquals($expected, $actual);
     }
@@ -477,9 +477,9 @@ class RdfTest extends TestCase
 
         $this->mockAdapter->method('fileExists')->willReturn(false);
 
-        $actual = $adapter->findAuxiliaryResources(self::MOCK_PATH);
+        $actual = $adapter->getAttributes(self::MOCK_PATH);
 
-        $this->assertArrayNotHasKey('acl', $actual);
+        $this->assertArrayNotHasKey('acl', $actual->extraMetaData());
     }
 
     /**
@@ -509,9 +509,9 @@ class RdfTest extends TestCase
             ->willReturn(true)
         ;
 
-        $actual = $adapter->findAuxiliaryResources($path);
+        $actual = $adapter->getAttributes($path);
 
-        $this->assertArrayHasKey('acl', $actual);
+        $this->assertArrayHasKey('acl', $actual->extraMetaData());
     }
 
     /**
@@ -537,19 +537,19 @@ class RdfTest extends TestCase
         $expected = '/a/longer/path/to/.acl';
 
 
-        $this->mockAdapter->expects($this->exactly(3))
+        $this->mockAdapter->expects($this->exactly(4))
             ->method('fileExists')
             ->withConsecutive(
                 ['/a/longer/path/to/file.ext.meta'],
                 ['/a/longer/path/to/file.ext.acl'],
                 [$expected],
             )
-            ->willReturnOnConsecutiveCalls(true, false, true)
+            ->willReturnOnConsecutiveCalls(true, false, true, true)
         ;
 
-        $metadata = $adapter->findAuxiliaryResources('/a/longer/path/to/file.ext');
+        $metadata = $adapter->getAttributes('/a/longer/path/to/file.ext');
 
-        $actual = $metadata['acl'];
+        $actual = $metadata->extraMetaData()['acl'];
 
         $this->assertEquals($expected, $actual);
     }
@@ -576,7 +576,7 @@ class RdfTest extends TestCase
         /*/ This part is always needed /*/
         $expected = '.acl';
 
-        $this->mockAdapter->expects($this->exactly(7))
+        $this->mockAdapter->expects($this->exactly(8))
             ->method('fileExists')
             ->withConsecutive(
                 ['/a/longer/path/to/file.ext.meta'],
@@ -587,12 +587,12 @@ class RdfTest extends TestCase
                 ['/a/.acl'],
                 [$expected],
             )
-            ->willReturnOnConsecutiveCalls(true, false, false, false, false, false, true)
+            ->willReturnOnConsecutiveCalls(true, false, false, false, false, false, true, true)
         ;
 
-        $metadata = $adapter->findAuxiliaryResources('/a/longer/path/to/file.ext');
+        $metadata = $adapter->getAttributes('/a/longer/path/to/file.ext');
 
-        $actual = $metadata['acl'];
+        $actual = $metadata->extraMetaData()['acl'];
 
         $this->assertEquals($expected, $actual);
     }
