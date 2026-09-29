@@ -231,6 +231,8 @@ class RdfTest extends TestCase
      * @covers ::fileExists
      * @covers ::read
      * @covers ::readStream
+     * @covers ::getAttributes
+     * @covers ::findAuxiliaryResources
      *
      * @uses \Pdsinterop\Rdf\Enum\Format
      * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::setFormat
@@ -346,6 +348,7 @@ class RdfTest extends TestCase
 
     /**
      * @covers ::getAttributes
+     * @covers ::findAuxiliaryResources
      *
      * @uses \Pdsinterop\Rdf\Enum\Format
      * @uses \Pdsinterop\Rdf\Flysystem\Adapter\Rdf::read
