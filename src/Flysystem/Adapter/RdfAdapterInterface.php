@@ -2,12 +2,12 @@
 
 namespace Pdsinterop\Rdf\Flysystem\Adapter;
 
-use League\Flysystem\AdapterInterface;
+use League\Flysystem\FilesystemAdapter;
 
 /**
  * Filesystem adapter to convert RDF files to and from a default format
  */
-interface RdfAdapterInterface extends AdapterInterface
+interface RdfAdapterInterface extends FilesystemAdapter
 {
     public function getFormat(): string;
 

@@ -4,8 +4,9 @@ namespace Pdsinterop\Rdf\Flysystem\Adapter;
 
 use EasyRdf\Exception as RdfException;
 use EasyRdf\Graph as Graph;
-use League\Flysystem\AdapterInterface;
+use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\Config;
+use League\Flysystem\FileAttributes;
 use ML\JsonLD\JsonLD;
 use Pdsinterop\Rdf\Enum\Format;
 use Pdsinterop\Rdf\Flysystem\Exception;
@@ -21,7 +22,7 @@ class Rdf implements RdfAdapterInterface
     public const ERROR_UNSUPPORTED_FORMAT = 'Given format "%s" is not supported';
     public const ERROR_COULD_NOT_CONVERT = 'Could not convert file "%s" to format "%s": %s';
 
-    /** @var AdapterInterface */
+    /** @var FilesystemAdapter */
     private $adapter;
     /** @var string */
     private $format = '';
@@ -58,10 +59,20 @@ class Rdf implements RdfAdapterInterface
 		return $this->format;
 	}
 
+    final public function setUrl(string $url): void
+    {
+        $this->url = $url;
+    }
+
+    final public function getUrl(): string
+    {
+        return $this->url;
+    }
+
     //////////////////////////////// PUBLIC API \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
     // @FIXME: Add JsonLD as dependency and use static calls to object instance instead of using static calls to class
-    final public function __construct(AdapterInterface $adapter, Graph $graph, FormatsInterface $formats, string $url)
+    final public function __construct(FilesystemAdapter $adapter, Graph $graph, FormatsInterface $formats, string $url)
     {
         $this->adapter = $adapter;
         $this->formats = $formats;
@@ -69,96 +80,122 @@ class Rdf implements RdfAdapterInterface
         $this->url = $url;
     }
 
-    final public function write($path, $contents, Config $config)
+    final public function write(string $path, string $contents, Config $config): void
+    {
+        call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+    }
+
+    final public function writeStream(string $path, $contents, Config $config): void
+    {
+        call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+    }
+
+    final public function move(string $source, string $destination, Config $config): void
+    {
+        call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+    }
+
+    final public function copy(string $source, string $destination, Config $config): void
+    {
+        call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+    }
+
+    final public function delete($path): void
+    {
+        call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+    }
+
+    final public function deleteDirectory($dirname): void
+    {
+        call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+    }
+
+    final public function createDirectory(string $path, Config $config): void
+    {
+        call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+    }
+
+    final public function setVisibility(string $path, string $visibility): void
+    {
+        call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+    }
+
+    final public function fileExists(string $path): bool
     {
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
 
-    final public function writeStream($path, $resource, Config $config)
+    final public function directoryExists(string $path): bool
     {
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
 
-    final public function update($path, $contents, Config $config)
-    {
-        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
-    }
-
-    final public function updateStream($path, $resource, Config $config)
-    {
-        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
-    }
-
-    final public function rename($path, $newpath)
-    {
-        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
-    }
-
-    final public function copy($path, $newpath)
-    {
-        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
-    }
-
-    final public function delete($path)
-    {
-        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
-    }
-
-    final public function deleteDir($dirname)
-    {
-        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
-    }
-
-    final public function createDir($dirname, Config $config)
-    {
-        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
-    }
-
-    final public function setVisibility($path, $visibility)
-    {
-        return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
-    }
-
-    final public function has($path)
-    {
-        $metadata = call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
-
-        if ($this->format !== '' || $metadata === false) {
-            $metadata = $this->getMetadata($path);
-        }
-
-        return $metadata;
-    }
-
-    final public function read($path)
+    final public function read(string $path): string
     {
         $format = $this->format;
-
         if ($format !== '') {
             $contents = $this->convertedContents($path, $format);
-
-            $metaData = [
-                'contents' => $contents,
-                'mimetype' => $this->formats->getMimeForFormat($format),
-                'path' => $path,
-                'size' => strlen($contents), // filesize in bytes,
-                'type' => 'file',
-            ];
-            $metaData = array_merge($metaData, $this->findAuxiliaryResources($path));
         } else {
-            $metaData = $this->adapter->read($path);
+            $contents = $this->adapter->read($path);
         }
 
-        return $metaData;
+        return $contents;
     }
 
-    final public function readStream($path)
+    final public function getAttributes(string $path): FileAttributes
+    {
+        $auxiliaryResources = $this->findAuxiliaryResources($path);
+
+        $format = $this->format;
+
+        if ($format == '') {
+            $attributes = $this->adapter->fileSize($path); // expected to use getAttributes, but this returns the full set of metadata;
+            return new FileAttributes(
+                $path,
+                $attributes->fileSize(),
+                $attributes->visibility(),
+                $attributes->lastModified(),
+                $attributes->mimeType(),
+                $auxiliaryResources
+            );
+        } else {
+            $mimetype = $this->formats->getMimeForFormat($this->format);
+            if ($this->adapter->fileExists($path)) {
+                $metadata = $this->adapter->mimeType($path);
+            }
+
+            $possibleMimeType = $this->guessMimeType($path, $metadata);
+
+            if ($possibleMimeType !== '') {
+                $mimetype = $possibleMimeType;
+            }
+
+            $contents = $this->read($path);
+            $metaData = [
+                'contents' => $contents,
+                'mimetype' => $mimetype,
+                'path' => $path,
+                'size' => strlen($contents), // filesize in bytes,
+            ];
+
+            return new FileAttributes(
+                $path,
+                $metaData['size'],
+                null,
+                null,
+                $metaData['mimetype'],
+                $auxiliaryResources
+            );
+        }
+    }
+
+    final public function readStream(string $path)
     {
         // @TODO: Change to stream?
         return $this->read($path);
     }
 
-    final public function listContents($directory = '', $recursive = false)
+    final public function listContents(string $path, bool $deep): iterable
     {
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
@@ -175,66 +212,30 @@ class Rdf implements RdfAdapterInterface
 
     Should that be added here or in a separate Solid Metadata adapter?
 /*/
-    final public function getMetadata($path)
+    final public function fileSize(string $path): FileAttributes
     {
-        $metadata = [];
-
-        if ($this->adapter->has($path)) {
-            $metadata = $this->adapter->getMetadata($path) ?? [];
-	    $format = $this->format;
-
-            if ($format !== '') {
-                // @CHECKME: Does it make more sense to call `guessMimeType` or should `getMimeType` be called?
-                $metadata = array_merge($metadata, ['mimetype' => $this->guessMimeType($path)], $this->read($path));
-            }
-            return array_merge($metadata);
+        if ($this->format === '') {
+            return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
         } else {
-            return $metadata;
+            return $this->getAttributes($path);
         }
     }
 
-    final public function getSize($path)
+    final public function mimeType(string $path): FileAttributes
     {
-        $format = $this->format;
-
-        if ($format === '') {
-            $metadata = call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
+        if ($this->format === '') {
+            return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
         } else {
-            $metadata = $this->getMetadata($path);
+            return $this->getAttributes($path);
         }
-
-        return $metadata;
     }
 
-    final public function getMimeType($path)
-    {
-        $format = $this->resetFormat();
-
-        if ($format !== '') {
-            $metadata = ['mimetype' => $this->formats->getMimeForFormat($format)];
-        } else {
-            $metadata = [];
-
-            if ($this->adapter->has($path)) {
-                $metadata = $this->adapter->getMimetype($path);
-            }
-
-            $possibleMimeType = $this->guessMimeType($path, $metadata);
-
-            if ($possibleMimeType !== '') {
-                $metadata['mimetype'] = $possibleMimeType;
-            }
-        }
-
-        return $metadata;
-    }
-
-    final public function getTimestamp($path)
+    final public function lastModified(string $path): FileAttributes
     {
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
 
-    final public function getVisibility($path)
+    final public function visibility(string $path): FileAttributes
     {
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
@@ -295,7 +296,7 @@ class Rdf implements RdfAdapterInterface
         return $contents;
     }
 
-    private function findAuxiliaryResources(string $path): array
+    public function findAuxiliaryResources(string $path): array
     {
         $metaFiles = [
             'describedby' => $this->findInPath($path, '.meta'),
@@ -312,7 +313,7 @@ class Rdf implements RdfAdapterInterface
 
         $subjectPath = $originalPath . $extension;
 
-        if ($this->adapter->has($subjectPath)) {
+        if ($this->adapter->fileExists($subjectPath)) {
             $subject = $subjectPath;
         } else {
             do {
@@ -320,14 +321,14 @@ class Rdf implements RdfAdapterInterface
 
                 if ($subjectPath === '.' || $subjectPath === '/') {
                     // We have reached the root of the file system
-                    if ($this->adapter->has($extension)) {
+                    if ($this->adapter->fileExists($extension)) {
                         $subject = $extension;
                     }
                     break;
                 } else {
                     $path = $subjectPath . '/' . $extension;
 
-                    if ($this->adapter->has($path)) {
+                    if ($this->adapter->fileExists($path)) {
                         $subject = $path;
                     }
                 }
@@ -347,32 +348,19 @@ class Rdf implements RdfAdapterInterface
     {
         $converted = $this->adapter->read($path);
 
-        return $converted['contents'];
+        return $converted;
     }
 
-    private function guessMimeType(string $path, array $metadata = []): string
+    private function guessMimeType(string $path, FileAttributes $attributes): string
     {
         $mimetype = '';
-
-        if ($metadata === []) {
-            $originalMetadata = [];
-            if ($this->adapter->has($path)) {
-                $originalMetadata = $this->adapter->getMimetype($path);
-            }
-
-            if (isset($originalMetadata['mimetype'])) {
-                $metadata = $originalMetadata;
-            }
-        }
-
         $extension = $this->getExtension($path);
-
         $possibleMime = $this->formats->getMimeForExtension($extension);
 
         if ($possibleMime !== ''
             && (
-                ! isset($metadata['mimetype'])
-                || $metadata['mimetype'] === 'text/plain'
+                ! $attributes->mimeType()
+                || $attributes->mimeType() === 'text/plain'
             )
         ) {
             $mimetype = $possibleMime;
