@@ -45,6 +45,12 @@ class Rdf implements RdfAdapterInterface
         return clone $this->graph;
     }
 
+    final public function setMimeFormat(string $mime): void
+    {
+        $format = $this->formats->getFormatForMime($mime);
+        $this-setFormat($format);
+    }
+
     final public function setFormat(string $format): void
     {
         if (($format !== "") && (Format::has($format) === false)) {
