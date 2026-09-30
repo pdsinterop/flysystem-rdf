@@ -48,7 +48,7 @@ class Rdf implements RdfAdapterInterface
     final public function setMimeFormat(string $mime): void
     {
         $format = $this->formats->getFormatForMime($mime);
-        $this-setFormat($format);
+        $this->setFormat($format);
     }
 
     final public function setFormat(string $format): void
