@@ -168,6 +168,14 @@ class Rdf implements RdfAdapterInterface
             $mimetype = $this->formats->getMimeForFormat($this->format);
             if ($this->adapter->fileExists($path)) {
                 $metadata = $this->adapter->mimeType($path);
+            } else {
+                $metadata = new FileAttributes(
+                    $path,
+                    null,
+                    null,
+                    null,
+                    null
+                );
             }
 
             $possibleMimeType = $this->guessMimeType($path, $metadata);
