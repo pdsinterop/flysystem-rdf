@@ -211,6 +211,7 @@ class Rdf implements RdfAdapterInterface
 
     final public function listContents(string $path, bool $deep): iterable
     {
+        // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
 
@@ -229,6 +230,7 @@ class Rdf implements RdfAdapterInterface
     final public function fileSize(string $path): FileAttributes
     {
         if ($this->format === '') {
+            // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection
             return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
         } else {
             return $this->getAttributes($path);
@@ -248,6 +250,7 @@ class Rdf implements RdfAdapterInterface
         }
         
         if ($this->format === '') {
+            // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection
             return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
         } else {
             return $this->getAttributes($path);
@@ -256,11 +259,13 @@ class Rdf implements RdfAdapterInterface
 
     final public function lastModified(string $path): FileAttributes
     {
+        // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
 
     final public function visibility(string $path): FileAttributes
     {
+        // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection
         return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
     }
 
