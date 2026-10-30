@@ -239,16 +239,6 @@ class Rdf implements RdfAdapterInterface
 
     final public function mimeType(string $path): FileAttributes
     {
-        if ($this->adapter->directoryExists($path)) {
-            return new FileAttributes(
-                $path,
-                null,
-                null,
-                null,
-                'directory',
-            );
-        }
-        
         if ($this->format === '') {
             // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection
             return call_user_func_array([$this->adapter, __FUNCTION__], func_get_args());
